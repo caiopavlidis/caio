@@ -1,0 +1,2149 @@
+<title>EasyViz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #eef0f3;
+    --surface: #ffffff;
+    --surface-sunken: #e4e7ec;
+    --ink: #14181f;
+    --ink-soft: #3b414d;
+    --grey: #6b7280;
+    --grey-line: #d6dae0;
+    --accent: #2451d6;
+    --accent-ink: #ffffff;
+    --accent-soft: #dfe7fb;
+    --accent-soft-line: #b9caf7;
+    --good: #0c8a3e;
+    --good-soft: #e2f5e9;
+    --good-soft-line: #b8e3c8;
+    --series-2: #d9722f;
+    --series-3: #148f63;
+    --shadow: 0 1px 2px rgba(20,24,31,0.04), 0 8px 24px rgba(20,24,31,0.07);
+    --font-display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+    --font-body: 'Public Sans', -apple-system, 'Segoe UI', sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14171e; --surface: #1b1f28; --surface-sunken: #10131a;
+      --ink: #eef0f4; --ink-soft: #b9bfca; --grey: #8b93a1; --grey-line: #2c313c;
+      --accent: #7099ff; --accent-ink: #0c1120; --accent-soft: #202a45; --accent-soft-line: #3a4a78;
+      --good: #3cc383; --good-soft: #17301f; --good-soft-line: #2c5a3a;
+      --series-2: #e08a4f; --series-3: #2ba87e;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14171e; --surface: #1b1f28; --surface-sunken: #10131a;
+    --ink: #eef0f4; --ink-soft: #b9bfca; --grey: #8b93a1; --grey-line: #2c313c;
+    --accent: #7099ff; --accent-ink: #0c1120; --accent-soft: #202a45; --accent-soft-line: #3a4a78;
+    --good: #3cc383; --good-soft: #17301f; --good-soft-line: #2c5a3a;
+    --series-2: #e08a4f; --series-3: #2ba87e;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+  }
+
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--font-body); line-height:1.6; -webkit-font-smoothing:antialiased; }
+  .page { max-width: 920px; margin: 0 auto; padding: 3.6rem 1.5rem 6rem; }
+
+  .eyebrow { font-family:var(--font-mono); font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); display:flex; align-items:center; gap:.6em; }
+  .eyebrow::before { content:""; width:1.6em; height:1px; background:var(--accent); display:inline-block; }
+  h1.title { font-family:var(--font-display); font-weight:600; font-size:clamp(2.1rem,5.4vw,2.9rem); line-height:1.08; margin:.5em 0 .4em; text-wrap:balance; }
+  .subtitle { font-size:1.04rem; color:var(--ink-soft); max-width:64ch; margin:0 0 .6rem; }
+  .note { font-size:.85rem; color:var(--grey); max-width:68ch; }
+
+  .intro-grid { display:grid; grid-template-columns: 1fr; gap:1rem; margin-top:1.8rem; }
+  .intro-card { background:var(--surface); border-radius:14px; padding:1.3rem 1.4rem 1.4rem; box-shadow:var(--shadow); }
+  .intro-card h3 { font-family:var(--font-display); font-weight:600; font-size:1.05rem; margin:0 0 .6rem; text-wrap:balance; }
+  .intro-card p { font-size:.87rem; color:var(--ink-soft); margin:0; }
+  .intro-card.security { background:var(--good-soft); border:1px solid var(--good-soft-line); box-shadow:none; }
+  .intro-list { list-style:none; padding:0; margin:0; display:grid; gap:.85rem; }
+  .intro-list li { display:flex; gap:.6rem; align-items:flex-start; font-size:.87rem; color:var(--ink-soft); }
+  .intro-list .chk { flex-shrink:0; color:var(--good); font-weight:700; line-height:1.6; }
+  .intro-list b { display:block; color:var(--ink); margin-bottom:.15rem; }
+  .intro-list p { margin:0; }
+  .intro-fine { font-size:.78rem; color:var(--grey); margin:1rem 0 0; padding-top:.8rem; border-top:1px solid var(--good-soft-line); }
+
+  /* Site header */
+  .site-header { position:sticky; top:0; z-index:40; background:var(--surface); border-bottom:1px solid var(--grey-line); }
+  .site-header-inner { max-width:920px; margin:0 auto; padding:0 1.5rem; min-height:60px; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+  .brand {
+    display:flex; align-items:center; gap:.5rem; font-family:var(--font-display); font-weight:600; font-size:1.02rem;
+    color:var(--ink); padding:.7rem .3rem; white-space:nowrap; background:none; border:none; cursor:pointer; border-radius:8px;
+  }
+  .brand:hover { color:var(--accent); }
+  .brand:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .brand .ico { font-size:1.1rem; }
+  .site-nav { display:flex; gap:.2rem; }
+  .site-nav-link {
+    font-family:var(--font-body); font-weight:600; font-size:.86rem; color:var(--grey);
+    background:none; border:none; padding:.5rem .75rem; margin:.4rem 0; cursor:pointer; border-radius:8px; position:relative; white-space:nowrap;
+  }
+  .site-nav-link:hover { color:var(--ink-soft); background:var(--surface-sunken); }
+  .site-nav-link.active { color:var(--accent); }
+  .site-nav-link.active::after { content:""; position:absolute; left:.75rem; right:.75rem; bottom:-1px; height:2px; background:var(--accent); border-radius:2px; }
+  .site-nav-link:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+
+  .site-header-right { display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
+  .auth-status { display:flex; align-items:center; gap:.6rem; }
+  .auth-user { font-family:var(--font-mono); font-size:.78rem; color:var(--ink-soft); }
+  .auth-unconfigured { font-size:.72rem; color:var(--grey); font-family:var(--font-mono); }
+
+  .auth-modal-backdrop { position:fixed; inset:0; background:rgba(20,24,31,0.5); z-index:100; display:none; align-items:center; justify-content:center; padding:1.5rem; }
+  .auth-modal { background:var(--surface); border-radius:16px; padding:1.8rem 1.9rem; max-width:380px; width:100%; box-shadow:var(--shadow); position:relative; }
+  .auth-modal h2 { font-family:var(--font-display); font-weight:600; font-size:1.4rem; margin:0 0 1.2rem; }
+  .auth-modal-close { position:absolute; top:1rem; right:1rem; background:none; border:none; font-size:1.3rem; color:var(--grey); cursor:pointer; line-height:1; padding:.2rem; }
+  .auth-modal-close:hover { color:var(--ink); }
+  .btn.google-btn { width:100%; justify-content:center; background:var(--surface); color:var(--ink); border:1px solid var(--grey-line); }
+  .btn.google-btn:hover { background:var(--surface-sunken); }
+  .auth-divider { display:flex; align-items:center; gap:.7rem; margin:1rem 0; color:var(--grey); font-size:.8rem; }
+  .auth-divider::before, .auth-divider::after { content:""; flex:1; height:1px; background:var(--grey-line); }
+  .auth-error { font-size:.84rem; color:#c0392b; background:var(--surface-sunken); border-radius:8px; padding:.6rem .8rem; margin:.8rem 0 0; }
+  .auth-toggle { font-size:.85rem; color:var(--ink-soft); margin:1.1rem 0 0; text-align:center; }
+  .auth-toggle button { background:none; border:none; color:var(--accent); font-weight:600; cursor:pointer; padding:0; font-size:inherit; }
+  #auth-form .field { margin-bottom:.9rem; }
+  #auth-form button[type="submit"] { width:100%; justify-content:center; margin-top:.3rem; }
+
+  .page-view { display:none; }
+  .page-view.active { display:block; animation: fade .2s ease; }
+  @keyframes fade { from{opacity:0; transform:translateY(2px)} to{opacity:1; transform:translateY(0)} }
+
+  h2.page-title { font-family:var(--font-display); font-weight:600; font-size:clamp(1.6rem,4vw,2.1rem); line-height:1.12; margin:.4em 0 .3em; text-wrap:balance; }
+
+  /* Tools drill-down */
+  .tool-block {
+    width:100%; text-align:left; display:flex; justify-content:space-between; align-items:center; gap:1.2rem;
+    background:var(--surface); border:none; border-radius:14px; padding:1.3rem 1.5rem; box-shadow:var(--shadow);
+    margin-bottom:1rem; cursor:pointer; font-family:var(--font-body); color:var(--ink); transition:box-shadow .15s;
+  }
+  .tool-block:hover { box-shadow:0 1px 2px rgba(20,24,31,0.05), 0 10px 28px rgba(20,24,31,0.12); }
+  .tool-block:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .tool-block h3 { font-family:var(--font-display); font-weight:600; font-size:1.12rem; margin:0 0 .35rem; }
+  .tool-block p { font-size:.87rem; color:var(--ink-soft); margin:0; max-width:56ch; }
+  .tool-block .arrow { color:var(--accent); font-size:1.3rem; flex-shrink:0; }
+
+  .back-btn { background:none; border:none; color:var(--accent); font-family:var(--font-body); font-weight:600; font-size:.88rem; cursor:pointer; padding:.4rem 0; margin-bottom:1.2rem; display:inline-flex; align-items:center; gap:.4rem; }
+  .back-btn:hover { text-decoration:underline; }
+  .back-btn:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+
+  .panel { display:none; }
+  .panel.active { display:block; animation: fade .2s ease; }
+
+  /* Card */
+  .card { background:var(--surface); border-radius:14px; padding:1.6rem 1.7rem 1.8rem; box-shadow:var(--shadow); }
+  .card + .card { margin-top:1.4rem; }
+  .section-label { font-family:var(--font-mono); font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; color:var(--grey); margin:0 0 .7rem; }
+
+  /* Form */
+  .field { margin-bottom:1.15rem; }
+  .field label { display:block; font-size:.85rem; font-weight:600; color:var(--ink-soft); margin-bottom:.4rem; }
+  .field .hint { font-size:.78rem; color:var(--grey); margin-top:.3rem; }
+  select, input[type="text"], input[type="email"], input[type="password"] {
+    width:100%; font-family:var(--font-body); font-size:.9rem; color:var(--ink);
+    background:var(--surface); border:1px solid var(--grey-line); border-radius:8px;
+    padding:.55rem .65rem; appearance:none;
+  }
+  select:focus, input:focus { outline:2px solid var(--accent); outline-offset:1px; }
+  .checkrow { display:flex; align-items:center; gap:.5rem; white-space:nowrap; }
+  .checkrow input { width:16px; height:16px; accent-color:var(--accent); flex-shrink:0; }
+  .checkrow label { margin:0; font-size:.82rem; font-weight:500; color:var(--ink-soft); }
+
+  .btn {
+    font-family:var(--font-body); font-weight:600; font-size:.92rem;
+    background:var(--accent); color:var(--accent-ink); border:none; border-radius:8px;
+    padding:.68rem 1.2rem; cursor:pointer; display:inline-flex; align-items:center; gap:.5rem;
+  }
+  .btn:hover { filter:brightness(1.06); }
+  .btn:disabled { opacity:.45; cursor:not-allowed; filter:none; }
+  .btn:focus-visible { outline:2px solid var(--ink); outline-offset:2px; }
+  .btn.secondary { background:var(--surface-sunken); color:var(--ink-soft); }
+  .btn.tiny { padding:.3rem .55rem; font-size:.78rem; border-radius:6px; }
+
+  /* KPI rows (Tab A, multi) */
+  .kpi-row {
+    display:grid; grid-template-columns: 1.4fr 1.5fr 1fr auto auto auto;
+    gap:.6rem; align-items:center; padding:.8rem 0; border-bottom:1px solid var(--grey-line);
+  }
+  .kpi-row:first-child { padding-top:0; }
+  @media (max-width:760px) { .kpi-row { grid-template-columns: 1fr 1fr; } }
+  .kr-remove {
+    background:none; border:1px solid var(--grey-line); color:var(--grey); border-radius:6px;
+    width:30px; height:30px; cursor:pointer; font-size:1rem; line-height:1; justify-self:end;
+  }
+  .kr-remove:hover { color:#c33; border-color:#c33; }
+  .kpi-limit-msg { font-size:.8rem; color:var(--grey); margin:.8rem 0 0; }
+
+  /* Result page: grid of viz cards */
+  .result-page { margin-top:1.6rem; }
+  .result-empty { color:var(--grey); font-size:.92rem; padding:1.2rem 0; }
+  .page-note { font-size:.83rem; color:var(--grey); margin-bottom:1rem; background:var(--surface-sunken); border-radius:8px; padding:.6rem .8rem; }
+
+  .page-header { display:flex; align-items:baseline; justify-content:space-between; gap:1rem; flex-wrap:wrap; padding-bottom:.9rem; margin-bottom:1.3rem; border-bottom:1px solid var(--grey-line); }
+  .page-header h3 { font-family:var(--font-display); font-weight:600; font-size:1.3rem; margin:0; text-wrap:balance; }
+  .page-header span { font-family:var(--font-mono); font-size:.74rem; color:var(--grey); white-space:nowrap; }
+
+  .viz-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:1.1rem; align-items:start; }
+
+  .viz-card { background:var(--surface); border-radius:14px; padding:1.2rem 1.3rem 1.3rem; box-shadow:var(--shadow); }
+  .viz-card-tag { font-family:var(--font-mono); font-size:.64rem; letter-spacing:.07em; text-transform:uppercase; color:var(--accent); background:var(--accent-soft); border:1px solid var(--accent-soft-line); border-radius:999px; padding:.2rem .55rem; display:inline-block; margin-bottom:.5rem; }
+  h4.viz-card-title { font-family:var(--font-display); font-weight:600; font-size:1.1rem; margin:0 0 .8rem; text-wrap:balance; }
+
+  .chart-box { background:var(--surface-sunken); border-radius:10px; padding:.9rem 1rem 1rem; }
+  .chart-box svg { width:100%; height:auto; display:block; overflow:visible; }
+
+  .why-block { margin-top:.85rem; font-size:.85rem; }
+  .why-list, .avoid-list { list-style:none; margin:.4rem 0 0; padding:0; display:grid; gap:.4rem; }
+  .why-list li, .avoid-list li { display:flex; gap:.5rem; font-size:.85rem; color:var(--ink-soft); }
+  .why-list li::before { content:""; flex-shrink:0; margin-top:.55em; width:5px; height:5px; border-radius:999px; background:var(--accent); }
+  .avoid-list li::before { content:"×"; flex-shrink:0; color:var(--grey); font-weight:700; }
+  .mini-label { font-family:var(--font-mono); font-size:.62rem; letter-spacing:.07em; text-transform:uppercase; color:var(--grey); margin:.8rem 0 .3rem; }
+  .auto-tag { font-size:.72rem; color:var(--accent); margin-top:.3rem; display:none; }
+  .auto-tag.show { display:block; }
+
+  .option-pills { display:flex; gap:.4rem; flex-wrap:wrap; margin-bottom:.8rem; }
+  .option-pill { font-family:var(--font-body); font-size:.78rem; font-weight:600; color:var(--ink-soft); background:var(--surface-sunken); border:1px solid transparent; border-radius:999px; padding:.34rem .8rem; cursor:pointer; }
+  .option-pill:hover { border-color:var(--grey-line); }
+  .option-pill.active { background:var(--accent-soft); color:var(--accent); border-color:var(--accent-soft-line); }
+  .option-pill:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
+  .lesson-tag { font-size:.74rem; color:var(--grey); margin-top:.8rem; }
+  .insight-list { list-style:none; margin:.4rem 0 0; padding:0; display:grid; gap:.4rem; }
+  .insight-list li { display:flex; gap:.5rem; font-size:.85rem; color:var(--ink-soft); }
+  .insight-list li::before { content:"↳"; flex-shrink:0; color:var(--good); font-weight:700; }
+  .insight-list.computed li { color:var(--ink); font-weight:500; }
+
+  .story-card { background:var(--surface); border-radius:14px; padding:1.3rem 1.4rem 1.4rem; box-shadow:var(--shadow); margin-bottom:1.3rem; }
+  .story-card h3 { font-family:var(--font-display); font-weight:600; font-size:1.15rem; margin:0 0 .3rem; }
+  .big-idea { font-family:var(--font-display); font-style:italic; font-size:1.05rem; color:var(--ink-soft); background:var(--surface-sunken); border-radius:10px; padding:.9rem 1rem; margin:.8rem 0 1rem; }
+  .story-steps { list-style:none; margin:0; padding:0; display:grid; gap:.7rem; counter-reset:step; }
+  .story-steps li { display:flex; gap:.7rem; align-items:flex-start; }
+  .story-steps li::before { counter-increment:step; content:counter(step); flex-shrink:0; width:22px; height:22px; border-radius:999px; background:var(--accent-soft); color:var(--accent); border:1px solid var(--accent-soft-line); font-family:var(--font-mono); font-size:.72rem; font-weight:700; display:flex; align-items:center; justify-content:center; }
+  .story-steps b { color:var(--ink); }
+  .story-steps span { color:var(--ink-soft); font-size:.9rem; }
+  .chart-legend { display:flex; flex-wrap:wrap; gap:.6rem .9rem; margin-top:.6rem; font-size:.76rem; color:var(--ink-soft); }
+  .chart-legend span { display:flex; align-items:center; gap:.4rem; }
+  .chart-legend .dot { width:8px; height:8px; border-radius:2px; display:inline-block; }
+
+  /* Upload */
+  .dropzone {
+    border:1.5px dashed var(--grey-line); border-radius:10px; padding:1.6rem 1.4rem;
+    text-align:center; color:var(--grey); font-size:.9rem; cursor:pointer; transition:border-color .15s, background .15s; display:block;
+  }
+  .dropzone:hover, .dropzone.drag { border-color:var(--accent); background:var(--accent-soft); }
+  .dropzone b { color:var(--ink-soft); }
+  .dropzone input { display:none; }
+  .upload-actions { display:flex; gap:.7rem; align-items:center; margin-top:1rem; flex-wrap:wrap; }
+  .file-name { font-family:var(--font-mono); font-size:.8rem; color:var(--ink-soft); }
+
+  .cols-grid { display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.6rem; }
+  .col-pill { font-family:var(--font-mono); font-size:.72rem; border:1px solid var(--grey-line); border-radius:999px; padding:.28rem .65rem .28rem .5rem; display:flex; align-items:center; gap:.4rem; color:var(--ink-soft); }
+  .col-pill .type { color:var(--accent); font-weight:600; }
+
+  .y-checks { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.4rem; }
+  .y-check { display:flex; align-items:center; gap:.4rem; border:1px solid var(--grey-line); border-radius:999px; padding:.32rem .7rem .32rem .55rem; font-size:.82rem; color:var(--ink-soft); cursor:pointer; }
+  .y-check input { accent-color:var(--accent); }
+  .y-check.checked { border-color:var(--accent-soft-line); background:var(--accent-soft); color:var(--ink); }
+
+  .toggle-table { background:none; border:1px solid var(--grey-line); color:var(--ink-soft); font-size:.82rem; font-weight:600; border-radius:8px; padding:.45rem .8rem; cursor:pointer; margin-top:1.1rem; }
+  .toggle-table:hover { border-color:var(--accent); color:var(--accent); }
+
+  table.datatable { width:100%; border-collapse:collapse; font-size:.84rem; margin-top:.8rem; }
+  table.datatable th, table.datatable td { text-align:left; padding:.45rem .6rem; border-bottom:1px solid var(--grey-line); font-variant-numeric:tabular-nums; }
+  table.datatable th { font-family:var(--font-mono); font-size:.68rem; letter-spacing:.05em; text-transform:uppercase; color:var(--grey); font-weight:600; }
+  .table-wrap { overflow-x:auto; }
+  .table-wrap.scroll { max-height:420px; overflow-y:auto; }
+  .table-wrap.scroll thead th { position:sticky; top:0; background:var(--surface); }
+
+  .range-filter { display:flex; flex-direction:column; gap:.55rem; margin-bottom:.8rem; }
+  .rf-level { display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; }
+  .rf-level-label { font-family:var(--font-mono); font-size:.64rem; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); width:32px; flex-shrink:0; }
+  .rf-label { display:flex; align-items:center; gap:.4rem; font-size:.8rem; color:var(--ink-soft); font-weight:600; }
+  .rf-label select { width:auto; max-width:150px; font-size:.8rem; padding:.35rem .5rem; }
+  .rf-actions { display:flex; gap:.6rem; margin-top:.1rem; }
+  .chart-caption { font-size:.78rem; color:var(--grey); margin-top:.7rem; }
+
+  /* Tooltip */
+  #viz-tooltip {
+    position:fixed; pointer-events:none; z-index:50; background:var(--ink); color:var(--bg);
+    font-family:var(--font-mono); font-size:.74rem; padding:.35rem .55rem; border-radius:6px;
+    opacity:0; transform:translate(-50%,-120%); transition:opacity .1s; white-space:nowrap;
+  }
+
+  footer.page-footer { margin-top:3.5rem; font-size:.82rem; color:var(--grey); text-align:center; }
+  a.back-link { color:var(--accent); text-decoration:none; font-weight:600; }
+  a.back-link:hover { text-decoration:underline; }
+</style>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <button class="brand" id="brand-home" type="button"><span class="ico">🔍</span> EasyViz</button>
+    <div class="site-header-right">
+      <nav class="site-nav" aria-label="Páginas do site">
+        <button class="site-nav-link active" id="pager-1" type="button">Sobre a plataforma</button>
+        <button class="site-nav-link" id="pager-2" type="button">Ferramentas</button>
+      </nav>
+      <div class="auth-status" id="auth-status"></div>
+    </div>
+  </div>
+</header>
+
+<div class="auth-modal-backdrop" id="auth-modal-backdrop">
+  <div class="auth-modal">
+    <button class="auth-modal-close" id="auth-modal-close" type="button" aria-label="Fechar">×</button>
+    <h2 id="auth-modal-title">Entrar</h2>
+    <button class="btn google-btn" id="btn-google" type="button">Continuar com Google</button>
+    <div class="auth-divider"><span>ou</span></div>
+    <form id="auth-form">
+      <div class="field"><label for="auth-email">E-mail</label><input type="email" id="auth-email" required></div>
+      <div class="field"><label for="auth-password">Senha</label><input type="password" id="auth-password" required minlength="6"></div>
+      <p class="auth-error" id="auth-error" style="display:none"></p>
+      <button class="btn" type="submit" id="auth-submit">Entrar</button>
+    </form>
+    <p class="auth-toggle">Não tem conta? <button type="button" id="auth-toggle-mode">Criar conta</button></p>
+  </div>
+</div>
+
+<div class="page">
+
+  <section class="page-view active" id="page-1">
+    <div class="eyebrow">Baseada em Storytelling com Dados</div>
+    <h1 class="title">EasyViz</h1>
+    <p class="subtitle">Escolha a visualização certa, entenda o porquê, e monte a história por trás dos seus dados.</p>
+
+    <div class="intro-grid">
+      <div class="intro-card">
+        <h3>O que essa ferramenta faz</h3>
+        <p>Você descreve o que quer mostrar, envia um arquivo de dados, ou sobe um gráfico que já tem. A partir disso, ela sugere o tipo de gráfico certo, explica o porquê, mostra pelo menos duas opções pra comparar, calcula insights quando há dados reais e monta um roteiro de como contar a história com eles.</p>
+      </div>
+      <div class="intro-card">
+        <h3>Em que ela se baseia</h3>
+        <p>As recomendações seguem principalmente os princípios do livro <em>Storytelling com Dados</em>, de Cole Nussbaumer Knaflic — contexto, escolha do gráfico certo, eliminar excesso, direcionar atenção e contar uma história. Quando ajuda, complementamos com práticas amplamente aceitas de visualização de dados (como limitar itens por tela ou usar cor com moderação), sempre citando o porquê.</p>
+      </div>
+      <div class="intro-card security">
+        <h3>🔒 Segurança e privacidade (LGPD)</h3>
+        <ul class="intro-list">
+          <li><span class="chk">✓</span><div><b>Tudo roda no seu navegador.</b><p>Nenhum dado digitado, enviado ou anexado (CSV, imagens, texto) é transmitido a um servidor — o processamento é só local.</p></div></li>
+          <li><span class="chk">✓</span><div><b>Nada é armazenado.</b><p>Sem localStorage, cookies ou banco de dados. Ao fechar ou recarregar a página, tudo desaparece.</p></div></li>
+          <li><span class="chk">✓</span><div><b>Você continua responsável pelos dados.</b><p>Como a ferramenta não coleta, guarda nem compartilha informações, ela não atua como operadora nos termos da LGPD — mas se o arquivo tiver dados pessoais ou sensíveis (Art. 5º da LGPD), a responsabilidade pelo tratamento continua sendo sua. Evite incluir dados pessoais identificáveis quando não forem necessários pra visualização.</p></div></li>
+        </ul>
+        <p class="intro-fine">Única conexão externa: fontes do Google Fonts, carregadas só para exibir o texto da página — não relacionada aos seus dados.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-view" id="page-2">
+    <div class="eyebrow">EasyViz</div>
+    <h2 class="page-title">Ferramentas</h2>
+    <p class="subtitle" style="margin-bottom:1.8rem">Descreva, envie dados ou suba um gráfico pronto — escolha por onde começar.</p>
+
+    <div id="tools-list">
+      <button class="tool-block" type="button" data-tool="a">
+        <div><h3>Descrever meus KPIs</h3><p>Sem dados em mãos ainda? Descreva o que quer mostrar e receba recomendações de gráfico, explicações e um roteiro de storytelling.</p></div>
+        <span class="arrow">→</span>
+      </button>
+      <button class="tool-block" type="button" data-tool="b">
+        <div><h3>Enviar meus dados</h3><p>Envie um CSV (ou use dados de exemplo) e receba visualizações prontas, com insights calculados a partir dos seus números.</p></div>
+        <span class="arrow">→</span>
+      </button>
+      <button class="tool-block" type="button" data-tool="c">
+        <div><h3>Já tenho um gráfico</h3><p>Suba a imagem de um gráfico pronto e receba um roteiro de como apresentá-lo, com perguntas pra achar o insight.</p></div>
+        <span class="arrow">→</span>
+      </button>
+    </div>
+
+    <div id="tool-detail" style="display:none">
+      <button class="back-btn" id="btn-back-tools" type="button">← Voltar às ferramentas</button>
+
+      <!-- TAB A -->
+  <section class="panel active" id="tab-a">
+    <div class="card">
+      <div class="section-label">Sobre esta aba</div>
+      <p class="note" style="margin:0">Você descreve o que quer mostrar, mesmo sem ter os dados em mãos ainda — a ferramenta sugere o gráfico certo, explica o porquê e monta um roteiro de como contar a história. Como não há dados reais aqui, os exemplos usam números fictícios e os insights ficam mais genéricos: são perguntas pra você mesmo responder depois, já com os dados de verdade.</p>
+    </div>
+
+    <div class="card">
+      <div class="section-label">KPIs para recomendar (até 6 por página)</div>
+      <div id="kpi-rows"></div>
+      <button class="btn secondary" id="btn-add-kpi" type="button">+ Adicionar KPI</button>
+      <p class="kpi-limit-msg" id="kpi-limit-msg" style="display:none">Até 6 visualizações por página já é o ideal pra manter a leitura rápida. Para mais KPIs, gere outra página.</p>
+      <button class="btn" id="btn-recomendar" style="margin-top:1.2rem">Gerar página de visualizações</button>
+    </div>
+
+    <div class="result-page" id="result-a">
+      <p class="result-empty">Preencha um ou mais KPIs acima e clique em "Gerar página de visualizações".</p>
+    </div>
+  </section>
+
+  <!-- TAB B -->
+  <section class="panel" id="tab-b">
+    <div class="card">
+      <div class="section-label">Sobre esta aba</div>
+      <p class="note" style="margin:0">Você envia um CSV ou XLSX (ou usa os dados de exemplo) e a ferramenta detecta as colunas sozinha, sugere os gráficos certos pra cada uma, calcula insights de verdade a partir dos seus números e monta um roteiro de como apresentar. Tudo roda aqui no navegador — nada é enviado a servidor. Em um XLSX com várias abas, só a primeira é lida.</p>
+    </div>
+
+    <div class="card">
+      <label class="dropzone" id="dropzone" for="file-input">
+        <div id="dropzone-text"><b>Clique para enviar</b> ou arraste um arquivo .csv ou .xlsx aqui</div>
+        <input type="file" id="file-input" accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+      </label>
+      <div class="upload-actions">
+        <button class="btn secondary" id="btn-demo" type="button">Usar dados de exemplo</button>
+        <button class="btn secondary" id="btn-clear" type="button" style="display:none">Limpar dados agora</button>
+        <span class="file-name" id="file-name"></span>
+      </div>
+    </div>
+
+    <div class="card" id="data-card" style="display:none">
+      <div class="section-label">Colunas detectadas</div>
+      <div class="cols-grid" id="cols-grid"></div>
+
+      <div class="field" style="margin-top:1.2rem">
+        <label for="sel-x">Eixo compartilhado (categoria ou tempo)</label>
+        <select id="sel-x"></select>
+      </div>
+
+      <div class="field" style="margin-bottom:.4rem">
+        <label>Quais valores visualizar? (até 6)</label>
+        <div class="y-checks" id="y-checks"></div>
+        <p class="hint" id="y-limit-msg" style="display:none">Mais de 6 selecionados — só os 6 primeiros marcados entram na página.</p>
+      </div>
+
+      <button class="btn" id="btn-atualizar">Gerar visualizações</button>
+
+      <div class="result-page" id="result-b"></div>
+    </div>
+  </section>
+
+  <!-- TAB C -->
+  <section class="panel" id="tab-c">
+    <div class="card">
+      <div class="section-label">Sobre esta aba</div>
+      <p class="note" style="margin:0">Você sobe a imagem de um gráfico pronto (opcional) e descreve rapidamente o assunto — a ferramenta não lê o conteúdo da imagem automaticamente (não há visão computacional aqui), mas monta um roteiro de como apresentar e as perguntas certas pra você mesmo achar o insight olhando pro gráfico.</p>
+    </div>
+
+    <div class="card">
+      <label class="dropzone" id="dropzone-c" for="file-input-c">
+        <div id="dropzone-c-text"><b>Clique para enviar</b> ou arraste a imagem do gráfico aqui (opcional)</div>
+        <input type="file" id="file-input-c" accept="image/*">
+      </label>
+      <div id="image-preview-wrap" style="display:none">
+        <img id="image-preview" alt="Pré-visualização do gráfico enviado" style="max-width:100%; border-radius:10px; margin-top:.9rem; display:block;">
+        <button class="btn secondary tiny" id="btn-clear-image" type="button" style="margin-top:.6rem">Remover imagem</button>
+      </div>
+
+      <div class="field" style="margin-top:1.3rem">
+        <label for="sc-assunto">Do que se trata esse gráfico?</label>
+        <input type="text" id="sc-assunto" placeholder="Ex.: Vendas do último trimestre por região">
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label for="sc-tipo">Que tipo de gráfico é</label>
+          <select id="sc-tipo">
+            <option value="comparar">Barras ou colunas (comparação entre categorias)</option>
+            <option value="tendencia">Linha (evolução no tempo)</option>
+            <option value="parte-todo">Pizza, donut ou empilhado (partes de um todo)</option>
+            <option value="relacao">Dispersão (relação entre duas variáveis)</option>
+            <option value="kpi">Um número grande (KPI único)</option>
+            <option value="table">Tabela</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="sc-publico">Pra quem é / o que a pessoa deve fazer ao ver (opcional)</label>
+          <input type="text" id="sc-publico" placeholder="Ex.: diretoria, decidir investimento">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="sc-observa">O que você já notou de primeira olhando pro gráfico? (opcional)</label>
+        <input type="text" id="sc-observa" placeholder="Ex.: a região Sul está bem à frente das outras">
+      </div>
+
+      <button class="btn" id="btn-gerar-roteiro">Gerar roteiro de storytelling</button>
+    </div>
+
+    <div class="result-page" id="result-c"></div>
+  </section>
+
+    </div>
+    <!-- /tool-detail -->
+  </section>
+  <!-- /page-2 -->
+
+  <footer class="page-footer">
+    Companheira do guia <a class="back-link" href="#" id="link-guia">Storytelling com Dados</a> — mesma síntese aplicada, agora interativa.
+  </footer>
+</div>
+
+<div id="viz-tooltip"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  const MAX_VIZ = 6;
+  const NS = "http://www.w3.org/2000/svg";
+  const tooltip = document.getElementById('viz-tooltip');
+
+  document.addEventListener('mousemove', (e) => {
+    const el = e.target.closest && e.target.closest('[data-tip]');
+    if (el) {
+      tooltip.textContent = el.getAttribute('data-tip');
+      tooltip.style.left = e.clientX + 'px';
+      tooltip.style.top = e.clientY + 'px';
+      tooltip.style.opacity = '1';
+    } else {
+      tooltip.style.opacity = '0';
+    }
+  });
+  document.addEventListener('mouseleave', () => { tooltip.style.opacity = '0'; }, true);
+
+  function fmtNum(n) {
+    if (Math.abs(n) >= 1000000) return (n/1000000).toFixed(1).replace(/\.0$/,'') + 'M';
+    if (Math.abs(n) >= 1000) return (n/1000).toFixed(1).replace(/\.0$/,'') + 'K';
+    if (Number.isInteger(n)) return String(n);
+    return n.toFixed(1);
+  }
+  function bodyFont() { return "Public Sans, sans-serif"; }
+  function monoFont() { return "IBM Plex Mono, monospace"; }
+  function escXml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function escAttr(s) { return escXml(s).replace(/"/g,'&quot;'); }
+  function tok(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+  /* Reduz uma série longa a no máximo maxPoints, priorizando início, fim, o maior,
+     o menor e os maiores saltos entre pontos vizinhos — em vez de só pular pontos
+     em intervalos fixos, o que pode esconder justamente a mudança mais relevante. */
+  function smartSample(items, maxPoints) {
+    const n = items.length;
+    if (n <= maxPoints) return items;
+    const keep = new Set([0, n-1]);
+    let maxI = 0, minI = 0;
+    items.forEach((d,i) => { if (d.value > items[maxI].value) maxI = i; if (d.value < items[minI].value) minI = i; });
+    keep.add(maxI); keep.add(minI);
+    const deltas = items.map((d,i) => ({ i, delta: i === 0 ? 0 : Math.abs(d.value - items[i-1].value) }));
+    deltas.sort((a,b) => b.delta - a.delta);
+    for (const d of deltas) { if (keep.size >= Math.max(4, Math.floor(maxPoints*0.35))) break; keep.add(d.i); }
+    if (keep.size < maxPoints) {
+      const step = Math.max(1, Math.floor(n / (maxPoints - keep.size)));
+      for (let i = 0; i < n && keep.size < maxPoints; i += step) keep.add(i);
+    }
+    return [...keep].sort((a,b) => a-b).map(i => items[i]);
+  }
+  function biggestJumpIndex(items) {
+    let idx = -1, best = -1;
+    for (let i = 1; i < items.length; i++) {
+      const d = Math.abs(items[i].value - items[i-1].value);
+      if (d > best) { best = d; idx = i; }
+    }
+    return idx;
+  }
+
+  function roundedTopPath(x, y, w, h, r) {
+    r = Math.min(r, h, w/2);
+    if (h <= 0) return `M${x},${y} L${x+w},${y} Z`;
+    return `M${x},${y+h} L${x},${y+r} Q${x},${y} ${x+r},${y} L${x+w-r},${y} Q${x+w},${y} ${x+w},${y+r} L${x+w},${y+h} Z`;
+  }
+  function roundedRightPath(x, y, w, h, r) {
+    r = Math.min(r, w, h/2);
+    if (w <= 0) return `M${x},${y} L${x},${y+h} Z`;
+    return `M${x},${y} L${x+w-r},${y} Q${x+w},${y} ${x+w},${y+r} L${x+w},${y+h-r} Q${x+w},${y+h} ${x+w-r},${y+h} L${x},${y+h} Z`;
+  }
+
+  /* ---------------- renderers ---------------- */
+
+  function hBarChart(container, items, opts) {
+    opts = opts || {};
+    const W = 560, padL = 8, padR = 60, rowH = 32, gap = 9;
+    const n = items.length;
+    const H = n * rowH + (n-1) * gap + 16;
+    const maxLabelW = 128;
+    const plotL = padL + maxLabelW;
+    const plotW = W - plotL - padR;
+    const maxV = Math.max(1, ...items.map(d => d.value));
+    const accent = tok('--accent'), grey = tok('--grey'), soft = tok('--ink-soft');
+
+    let svg = `<svg viewBox="0 0 ${W} ${H+8}" xmlns="${NS}">`;
+    items.forEach((d, i) => {
+      const y = 8 + i * (rowH + gap);
+      const barW = Math.max(2, (d.value / maxV) * plotW);
+      const isHi = opts.highlight === 'max' ? d.value === maxV : (opts.highlight === i);
+      const color = isHi ? accent : grey;
+      const opacity = isHi ? 1 : 0.38;
+      const label = d.label.length > 18 ? d.label.slice(0,17) + '…' : d.label;
+      svg += `<g data-tip="${escAttr(d.label + ': ' + fmtNum(d.value) + (opts.unit||''))}">`;
+      svg += `<text x="${plotL - 10}" y="${y + rowH/2 + 4}" text-anchor="end" font-family="${bodyFont()}" font-size="11.5" fill="${soft}">${escXml(label)}</text>`;
+      svg += `<path d="${roundedRightPath(plotL, y, barW, rowH*0.6, 4)}" fill="${color}" fill-opacity="${opacity}" />`;
+      svg += `<text x="${plotL + barW + 8}" y="${y + rowH*0.3 + 4}" font-family="${monoFont()}" font-size="11.5" font-weight="600" fill="${isHi?accent:soft}">${fmtNum(d.value)}${opts.unit||''}</text>`;
+      svg += `</g>`;
+    });
+    svg += `</svg>`;
+    container.innerHTML = svg;
+  }
+
+  function lineChart(container, items, opts) {
+    opts = opts || {};
+    const W = 560, H = 200, padL = 8, padR = 44, padT = 20, padB = 28;
+    const plotW = W - padL - padR, plotH = H - padT - padB;
+    const vals = items.map(d => d.value);
+    const maxV = Math.max(...vals), minV = Math.min(0, Math.min(...vals));
+    const domain = (maxV - minV) || 1;
+    const n = items.length;
+    const accent = tok('--accent'), grey = tok('--grey'), soft = tok('--ink-soft'), surface = tok('--surface-sunken'), jumpColor = tok('--series-2');
+
+    const x = i => padL + (n === 1 ? plotW/2 : (i/(n-1)) * plotW);
+    const y = v => padT + (1 - (v - minV)/domain) * plotH;
+
+    let path = items.map((d,i) => `${i===0?'M':'L'}${x(i).toFixed(1)},${y(d.value).toFixed(1)}`).join(' ');
+    let area = path + ` L${x(n-1).toFixed(1)},${y(minV).toFixed(1)} L${x(0).toFixed(1)},${y(minV).toFixed(1)} Z`;
+
+    let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="${NS}">`;
+    svg += `<line x1="${padL}" y1="${y(minV)}" x2="${W-padR}" y2="${y(minV)}" stroke="${grey}" stroke-opacity="0.35" stroke-width="1" />`;
+    svg += `<path d="${area}" fill="${accent}" fill-opacity="0.08" stroke="none" />`;
+    svg += `<path d="${path}" fill="none" stroke="${accent}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" />`;
+    items.forEach((d,i) => {
+      const showLabel = i === n-1;
+      const isJump = opts.highlightIndex === i && i !== n-1;
+      const dotColor = isJump ? jumpColor : accent;
+      const r = (showLabel || isJump) ? 4.5 : 2.2;
+      const tip = isJump ? `Maior variação aqui — ${d.label}: ${fmtNum(d.value)}${opts.unit||''}` : (d.label + ': ' + fmtNum(d.value) + (opts.unit||''));
+      svg += `<circle cx="${x(i)}" cy="${y(d.value)}" r="${r}" fill="${dotColor}" stroke="${surface}" stroke-width="2" data-tip="${escAttr(tip)}" />`;
+      if (showLabel) svg += `<text x="${x(i)+8}" y="${y(d.value)+4}" font-family="${monoFont()}" font-size="11.5" font-weight="600" fill="${accent}">${fmtNum(d.value)}${opts.unit||''}</text>`;
+    });
+    const step = Math.max(1, Math.ceil(n/6));
+    items.forEach((d,i) => {
+      if (i % step === 0 || i === n-1) {
+        svg += `<text x="${x(i)}" y="${H-6}" text-anchor="middle" font-family="${bodyFont()}" font-size="10.5" fill="${soft}">${escXml(String(d.label))}</text>`;
+      }
+    });
+    svg += `</svg>`;
+    container.innerHTML = svg;
+  }
+
+  function renderLineWithRangeFilter(container, fullPts, multiYear) {
+    container.innerHTML = '';
+    const fmt = (d) => formatDateLabel(d, multiYear);
+    const MONTHS = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    const years = [...new Set(fullPts.map(p => p.d.getFullYear()))].sort((a,b) => a-b);
+    const firstYear = years[0], lastYear = years[years.length-1];
+
+    const controls = document.createElement('div');
+    controls.className = 'range-filter';
+    const yearOpts = years.map(y => `<option value="${y}">${y}</option>`).join('');
+    const monthOpts = MONTHS.map((m,i) => `<option value="${i+1}">${m}</option>`).join('');
+    controls.innerHTML = `
+      <div class="rf-level">
+        <span class="rf-level-label">Ano</span>
+        <label class="rf-label">de <select class="rf-year-start">${yearOpts}</select></label>
+        <label class="rf-label">até <select class="rf-year-end">${yearOpts}</select></label>
+      </div>
+      <div class="rf-level">
+        <span class="rf-level-label">Mês</span>
+        <label class="rf-label">de <select class="rf-month-start">${monthOpts}</select></label>
+        <label class="rf-label">até <select class="rf-month-end">${monthOpts}</select></label>
+      </div>
+      <div class="rf-actions">
+        <button class="btn tiny rf-apply" type="button">Aplicar</button>
+        <button class="btn tiny secondary rf-reset" type="button">Ver tudo</button>
+      </div>
+    `;
+    container.appendChild(controls);
+
+    const chartHolder = document.createElement('div');
+    container.appendChild(chartHolder);
+    const caption = document.createElement('div');
+    caption.className = 'chart-caption';
+    container.appendChild(caption);
+
+    const yStartSel = controls.querySelector('.rf-year-start');
+    const yEndSel = controls.querySelector('.rf-year-end');
+    const mStartSel = controls.querySelector('.rf-month-start');
+    const mEndSel = controls.querySelector('.rf-month-end');
+    yStartSel.value = String(firstYear);
+    yEndSel.value = String(lastYear);
+    mStartSel.value = '1';
+    mEndSel.value = '12';
+    const applyBtn = controls.querySelector('.rf-apply');
+    const resetBtn = controls.querySelector('.rf-reset');
+
+    function draw(yFrom, yTo, mFrom, mTo) {
+      if (yFrom > yTo) { const t = yFrom; yFrom = yTo; yTo = t; }
+      if (mFrom > mTo) { const t = mFrom; mFrom = mTo; mTo = t; }
+      const slice = fullPts.filter(p => {
+        const y = p.d.getFullYear(), m = p.d.getMonth() + 1;
+        return y >= yFrom && y <= yTo && m >= mFrom && m <= mTo;
+      });
+      if (slice.length < 2) { chartHolder.innerHTML = '<p class="result-empty">Poucos pontos nesse período — amplie o intervalo de ano ou mês.</p>'; caption.textContent = ''; return; }
+      const items = slice.map(p => ({ label: fmt(p.d), value: p.v }));
+      const sampled = smartSample(items, 200);
+      const jumpIdx = sampled.length > 2 ? biggestJumpIndex(sampled) : -1;
+      lineChart(chartHolder, sampled, { highlightIndex: jumpIdx });
+      const note = sampled.length < items.length ? ` — mostrando ${sampled.length} de ${items.length} pontos deste período (o ponto laranja é onde teve a maior mudança)` : '';
+      const isFull = yFrom === firstYear && yTo === lastYear && mFrom === 1 && mTo === 12;
+      caption.textContent = `${isFull ? 'Período completo' : 'Período filtrado'}: ${fmt(slice[0].d)} até ${fmt(slice[slice.length-1].d)}, ${slice.length} ponto${slice.length===1?'':'s'}${note}.`;
+    }
+
+    applyBtn.addEventListener('click', () => draw(+yStartSel.value, +yEndSel.value, +mStartSel.value, +mEndSel.value));
+    resetBtn.addEventListener('click', () => {
+      yStartSel.value = String(firstYear); yEndSel.value = String(lastYear);
+      mStartSel.value = '1'; mEndSel.value = '12';
+      draw(firstYear, lastYear, 1, 12);
+    });
+
+    draw(firstYear, lastYear, 1, 12);
+  }
+
+  function smallMultiples(container, series) {
+    const cols = series.length;
+    const W = 560, cardW = W / cols - 10, H = 120, padT = 16, padB = 18, padX = 5;
+    const accent = tok('--accent'), soft = tok('--ink-soft');
+    let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="${NS}">`;
+    series.forEach((s, si) => {
+      const ox = si * (cardW + 10);
+      const vals = s.values;
+      const maxV = Math.max(...vals), minV = Math.min(0, ...vals);
+      const domain = (maxV - minV) || 1;
+      const plotW = cardW - padX*2, plotH = H - padT - padB;
+      const x = i => ox + padX + (i/(vals.length-1)) * plotW;
+      const y = v => padT + (1 - (v-minV)/domain) * plotH;
+      let path = vals.map((v,i) => `${i===0?'M':'L'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+      svg += `<text x="${ox+padX}" y="11" font-family="${bodyFont()}" font-size="10.5" font-weight="600" fill="${soft}">${escXml(s.label)}</text>`;
+      svg += `<path d="${path}" fill="none" stroke="${accent}" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" />`;
+      svg += `<circle cx="${x(vals.length-1)}" cy="${y(vals[vals.length-1])}" r="3.2" fill="${accent}" />`;
+    });
+    svg += `</svg>`;
+    container.innerHTML = svg;
+  }
+
+  function stackedBarChart(container, segments) {
+    const W = 560, H = 66, barH = 30, gap = 3;
+    const total = segments.reduce((a,d) => a + d.value, 0) || 1;
+    const accent = tok('--accent'), grey = tok('--grey'), soft = tok('--ink-soft'), surface = tok('--surface-sunken');
+    let x = 0;
+    let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="${NS}">`;
+    segments.forEach((s, i) => {
+      const w = Math.max(0, (s.value/total) * W - gap);
+      const isHi = i === 0;
+      const color = isHi ? accent : grey;
+      const opacity = isHi ? 1 : 0.3 + (0.12 * (segments.length - i));
+      const pct = Math.round((s.value/total)*100);
+      svg += `<rect x="${x}" y="0" width="${w}" height="${barH}" rx="3" fill="${color}" fill-opacity="${Math.min(opacity,1)}" data-tip="${escAttr(s.label + ': ' + pct + '%')}" />`;
+      if (w > 32) svg += `<text x="${x+7}" y="${barH/2+4}" font-family="${monoFont()}" font-size="11.5" font-weight="700" fill="${surface}">${pct}%</text>`;
+      svg += `<text x="${x}" y="${barH+16}" font-family="${bodyFont()}" font-size="10.5" fill="${soft}">${escXml(s.label)}</text>`;
+      x += w + gap;
+    });
+    svg += `</svg>`;
+    container.innerHTML = svg;
+  }
+
+  function scatterChart(container, points, opts) {
+    opts = opts || {};
+    const W = 560, H = 220, pad = 22;
+    const accent = tok('--accent'), grey = tok('--grey'), soft = tok('--ink-soft');
+    const xs = points.map(p=>p.x), ys = points.map(p=>p.y);
+    const minX = Math.min(...xs), maxX = Math.max(...xs);
+    const minY = Math.min(...ys), maxY = Math.max(...ys);
+    const dx = (maxX-minX)||1, dy = (maxY-minY)||1;
+    const x = v => pad + ((v-minX)/dx) * (W-pad*2);
+    const y = v => H - pad - ((v-minY)/dy) * (H-pad*2);
+    let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="${NS}">`;
+    svg += `<line x1="${pad}" y1="${H-pad}" x2="${W-pad}" y2="${H-pad}" stroke="${grey}" stroke-opacity="0.35" />`;
+    svg += `<line x1="${pad}" y1="${pad}" x2="${pad}" y2="${H-pad}" stroke="${grey}" stroke-opacity="0.35" />`;
+    points.forEach(p => {
+      svg += `<circle cx="${x(p.x)}" cy="${y(p.y)}" r="4.2" fill="${accent}" fill-opacity="0.6" data-tip="${escAttr((p.label||'') + ' (' + fmtNum(p.x) + ', ' + fmtNum(p.y) + ')')}" />`;
+    });
+    svg += `<text x="${pad}" y="${H-5}" font-family="${bodyFont()}" font-size="10" fill="${soft}">${escXml(opts.xLabel||'X')} →</text>`;
+    svg += `<text x="${pad-5}" y="${pad}" font-family="${bodyFont()}" font-size="10" fill="${soft}" text-anchor="end">${escXml(opts.yLabel||'Y')} ↑</text>`;
+    svg += `</svg>`;
+    container.innerHTML = svg;
+  }
+
+  function kpiTile(container, value, label, spark) {
+    const soft = tok('--ink-soft'), ink = tok('--ink');
+    let html = `<div style="padding:.4rem 0 .1rem">`;
+    html += `<div style="font-family:${bodyFont()};font-size:.78rem;color:${soft};font-weight:600;margin-bottom:.25rem">${escXml(label)}</div>`;
+    html += `<div style="font-family:${bodyFont()};font-size:2.1rem;font-weight:700;color:${ink};line-height:1">${escXml(String(value))}</div>`;
+    container.innerHTML = html;
+    if (spark && spark.length > 1) {
+      const svgHolder = document.createElement('div');
+      svgHolder.style.marginTop = '.6rem';
+      container.appendChild(svgHolder);
+      lineChart(svgHolder, spark.map((v)=>({label:'', value:v})), {});
+      const svg = svgHolder.querySelector('svg');
+      if (svg) svg.setAttribute('viewBox', '0 0 560 46');
+    }
+  }
+
+  function columnChart(container, items, opts) {
+    opts = opts || {};
+    const padL = 10, padR = 10, padT = 26, padB = 34;
+    const n = items.length;
+    const colSlot = Math.max(30, Math.min(64, 480 / n));
+    const W = Math.max(300, padL + padR + colSlot * n);
+    const H = 220;
+    const plotH = H - padT - padB;
+    const maxV = Math.max(1, ...items.map(d => d.value));
+    const accent = tok('--accent'), grey = tok('--grey'), soft = tok('--ink-soft');
+    const barW = Math.max(8, Math.min(40, colSlot * 0.55));
+
+    let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="${NS}">`;
+    items.forEach((d, i) => {
+      const cx = padL + i * colSlot + colSlot/2;
+      const x = cx - barW/2;
+      const barH = Math.max(2, (d.value / maxV) * plotH);
+      const y = H - padB - barH;
+      const isHi = opts.highlight === 'max' ? d.value === maxV : (opts.highlight === i);
+      const color = isHi ? accent : grey;
+      const opacity = isHi ? 1 : 0.38;
+      const label = d.label.length > 10 ? d.label.slice(0,9) + '…' : d.label;
+      svg += `<g data-tip="${escAttr(d.label + ': ' + fmtNum(d.value) + (opts.unit||''))}">`;
+      svg += `<path d="${roundedTopPath(x, y, barW, barH, 4)}" fill="${color}" fill-opacity="${opacity}" />`;
+      svg += `<text x="${cx}" y="${y-7}" text-anchor="middle" font-family="${monoFont()}" font-size="11" font-weight="600" fill="${isHi?accent:soft}">${fmtNum(d.value)}${opts.unit||''}</text>`;
+      svg += `<text x="${cx}" y="${H-padB+16}" text-anchor="middle" font-family="${bodyFont()}" font-size="10.5" fill="${soft}">${escXml(label)}</text>`;
+      svg += `</g>`;
+    });
+    svg += `</svg>`;
+    container.innerHTML = svg;
+  }
+
+  const SERIES_COLORS = ['--accent', '--series-2', '--series-3'];
+
+  function stackedColumnsChart(container, groups, opts) {
+    opts = opts || {};
+    const padL = 10, padR = 10, padT = 14, padB = 30, gap = 2;
+    const n = groups.length;
+    const colSlot = Math.max(40, Math.min(80, 480 / n));
+    const W = Math.max(320, padL + padR + colSlot * n);
+    const H = 190;
+    const plotH = H - padT - padB;
+    const soft = tok('--ink-soft');
+    const segNames = groups[0].segments.map(s => s.name);
+    const colors = segNames.map((_, i) => tok(SERIES_COLORS[i % SERIES_COLORS.length]));
+    const maxTotal = Math.max(1, ...groups.map(g => g.segments.reduce((a,s) => a + s.value, 0)));
+    const barW = Math.max(18, Math.min(44, colSlot * 0.6));
+
+    let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="${NS}">`;
+    groups.forEach((g, gi) => {
+      const cx = padL + gi * colSlot + colSlot/2;
+      const x = cx - barW/2;
+      let yCursor = H - padB;
+      const total = g.segments.reduce((a,s) => a + s.value, 0);
+      g.segments.forEach((seg, si) => {
+        const segH = Math.max(0, (seg.value / maxTotal) * plotH - gap);
+        const y = yCursor - segH;
+        const isTop = si === g.segments.length - 1;
+        const pct = total ? Math.round((seg.value/total)*100) : 0;
+        const path = isTop ? roundedTopPath(x, y, barW, segH, 4) : `M${x},${y} L${x+barW},${y} L${x+barW},${y+segH} L${x},${y+segH} Z`;
+        svg += `<path d="${path}" fill="${colors[si]}" data-tip="${escAttr(seg.name + ' · ' + g.label + ': ' + fmtNum(seg.value) + (opts.unit||'') + ' (' + pct + '%)')}" />`;
+        yCursor = y - gap;
+      });
+      svg += `<text x="${cx}" y="${H-padB+16}" text-anchor="middle" font-family="${bodyFont()}" font-size="10.5" fill="${soft}">${escXml(g.label)}</text>`;
+    });
+    svg += `</svg>`;
+    container.innerHTML = svg;
+
+    const legend = document.createElement('div');
+    legend.className = 'chart-legend';
+    legend.innerHTML = segNames.map((name,i) => `<span><span class="dot" style="background:${colors[i]}"></span>${escXml(name)}</span>`).join('');
+    container.appendChild(legend);
+  }
+
+  /* ---------------- demo data (Tab A) ---------------- */
+
+  const DEMO = {
+    bar: [
+      [ {label:'Sudeste', value:89}, {label:'Sul', value:61}, {label:'Nordeste', value:48}, {label:'Norte', value:32}, {label:'Centro-Oeste', value:27} ],
+      [ {label:'Loja Centro', value:74}, {label:'Loja Shopping', value:58}, {label:'Loja Bairro', value:41}, {label:'E-commerce', value:96} ],
+    ],
+    barTop: [
+      [ {label:'Produto A', value:120}, {label:'Produto B', value:98}, {label:'Produto C', value:74}, {label:'Produto D', value:55}, {label:'Produto E', value:40}, {label:'Produto F', value:31}, {label:'Outros (14 itens)', value:66} ],
+    ],
+    line: [
+      [ {label:'Jan', value:41}, {label:'Fev', value:47}, {label:'Mar', value:44}, {label:'Abr', value:52}, {label:'Mai', value:58}, {label:'Jun', value:63} ],
+      [ {label:'Jan', value:210}, {label:'Fev', value:198}, {label:'Mar', value:225}, {label:'Abr', value:240}, {label:'Mai', value:231}, {label:'Jun', value:260} ],
+    ],
+    smallMultiples: [
+      [ {label:'Região Sul', values:[20,24,22,27,31,34]}, {label:'Região Norte', values:[12,13,15,14,17,19]}, {label:'Região Sudeste', values:[40,44,41,48,52,57]} ],
+    ],
+    stacked: [
+      [ {label:'Orgânico', value:45}, {label:'Pago', value:30}, {label:'Indicação', value:15}, {label:'Outros', value:10} ],
+      [ {label:'Cartão', value:52}, {label:'Pix', value:38}, {label:'Boleto', value:10} ],
+    ],
+    stackedCols: [
+      [ {label:'T1', segments:[{name:'Orgânico',value:38},{name:'Pago',value:25},{name:'Indicação',value:12}]},
+        {label:'T2', segments:[{name:'Orgânico',value:41},{name:'Pago',value:29},{name:'Indicação',value:14}]},
+        {label:'T3', segments:[{name:'Orgânico',value:44},{name:'Pago',value:33},{name:'Indicação',value:16}]},
+        {label:'T4', segments:[{name:'Orgânico',value:49},{name:'Pago',value:31},{name:'Indicação',value:19}]} ],
+    ],
+    scatter: [
+      (() => { const pts=[]; for(let i=0;i<18;i++){ const x=10+i*4+Math.random()*8; pts.push({x, y:x*1.3+Math.random()*20-10, label:'Campanha '+(i+1)}); } return pts; })(),
+    ],
+    kpi: [
+      { value:'R$ 128,4K', label:'Receita no mês', prev:'R$ 110K' },
+      { value:'3,2%', label:'Taxa de conversão', prev:'3,0%' },
+    ],
+  };
+  function pick(arr, i) { return arr[i % arr.length]; }
+
+  function seriesToStackedColumns(series) {
+    const labels = ['Jan','Fev','Mar','Abr','Mai','Jun'];
+    return labels.map((lab, i) => ({ label: lab, segments: series.map(s => ({ name: s.label.replace('Região ',''), value: s.values[i] })) }));
+  }
+
+  const LESSON = {
+    contexto: 'Lição 1 do livro — Entenda o contexto',
+    escolha: 'Lição 2 do livro — Escolha a exibição certa',
+    desordem: 'Lição 3 do livro — Elimine a desordem',
+    atencao: 'Lição 4 do livro — Direcione a atenção',
+  };
+
+  /* ---------------- insight questions + storytelling order ---------------- */
+
+  const QUESTIONS = {
+    comparar: [ 'Qual categoria está na frente — e ela se destaca muito ou está tudo parecido?', 'Alguma categoria é bem menor do que se esperava? Por quê?', 'Isso é surpreendente pra quem vai ver, ou já era esperado?' ],
+    'parte-todo': [ 'Uma parte domina o total, ou está bem dividido entre elas?', 'Alguma parte cresceu ou encolheu de um jeito que chama atenção?' ],
+    tendencia: [ 'A tendência geral é de subida, queda ou estabilidade?', 'Teve algum salto ou queda brusca em algum ponto — o que aconteceu ali?', 'O ritmo de mudança está acelerando, desacelerando ou constante?' ],
+    relacao: [ 'Os dois números parecem andar juntos, ou não tem relação clara?', 'Tem algum ponto bem fora do padrão dos outros — o que ele representa?' ],
+    kpi: [ 'Esse número é bom ou ruim perto de uma meta ou do histórico?', 'O que mudou desde o último período pra esse número ter subido ou caído?' ],
+    table: [ 'Olhando linha por linha, algum valor chama atenção por ser muito alto ou muito baixo?', 'Dá pra comparar com um período ou meta anterior?' ],
+  };
+  function getQuestions(family) { return QUESTIONS[family] || QUESTIONS.comparar; }
+
+  function pearson(pts) {
+    const n = pts.length;
+    let sx=0, sy=0, sxy=0, sx2=0, sy2=0;
+    pts.forEach(p => { sx+=p.x; sy+=p.y; sxy+=p.x*p.y; sx2+=p.x*p.x; sy2+=p.y*p.y; });
+    const den = Math.sqrt((n*sx2-sx*sx) * (n*sy2-sy*sy));
+    return den === 0 ? 0 : (n*sxy - sx*sy) / den;
+  }
+
+  function barInsights(items) {
+    if (!items.length) return [];
+    const total = items.reduce((a,d)=>a+d.value,0) || 1;
+    const top = items[0], bottom = items[items.length-1];
+    const pct = (top.value/total*100);
+    const out = [`"${top.label}" está na frente, com ${fmtNum(top.value)} — ${pct.toFixed(0)}% do total somado.`];
+    if (items.length > 1 && bottom.value !== 0 && bottom.label !== top.label) {
+      out.push(`É ${(top.value/bottom.value).toFixed(1)}x maior que "${bottom.label}", o menor da lista.`);
+    }
+    if (pct > 50) out.push('Mais da metade do total está concentrada numa única categoria — vale destacar isso na conclusão.');
+    return out;
+  }
+  function lineInsights(items) {
+    if (items.length < 2) return [];
+    const first = items[0], last = items[items.length-1];
+    const change = last.value - first.value;
+    const dir = change > 0 ? 'subiu' : change < 0 ? 'caiu' : 'ficou estável';
+    const pct = first.value !== 0 ? Math.abs(change/first.value*100) : null;
+    const out = [`De ${first.label} até ${last.label}, o valor ${dir}${pct!=null ? ' '+pct.toFixed(0)+'%' : ''}.`];
+    let peak = items[0];
+    items.forEach(d => { if (d.value > peak.value) peak = d; });
+    if (peak !== first && peak !== last) out.push(`O ponto mais alto foi em ${peak.label} (${fmtNum(peak.value)}) — vale entender o que aconteceu ali.`);
+    return out;
+  }
+  function scatterInsights(pts) {
+    if (pts.length < 3) return [];
+    const r = pearson(pts);
+    let desc;
+    if (r > 0.5) desc = 'os dois números tendem a subir juntos (relação positiva forte)';
+    else if (r > 0.2) desc = 'existe uma leve tendência dos dois subirem juntos';
+    else if (r < -0.5) desc = 'quando um sobe, o outro tende a cair (relação negativa forte)';
+    else if (r < -0.2) desc = 'existe uma leve tendência de um subir enquanto o outro cai';
+    else desc = 'não dá pra ver uma relação clara entre os dois';
+    return [`Olhando os pontos, ${desc}.`];
+  }
+  const REFLECT_PROMPT = 'Isso é o que você esperava, ou é surpreendente? O que muda na próxima decisão por causa disso?';
+
+  function familyPriority(fam) {
+    const order = { kpi:0, table:1, comparar:1, 'parte-todo':1, bar:1, tendencia:2, line:2, relacao:3, scatter:3 };
+    return order[fam] !== undefined ? order[fam] : 1.5;
+  }
+  function suggestOrder(items) {
+    return items.map((it,i) => ({ ...it, i })).sort((a,b) => familyPriority(a.family) - familyPriority(b.family) || a.i - b.i);
+  }
+  function storyRationale(fam) {
+    if (fam === 'kpi') return 'Abra por aqui — é o número que resume tudo, antes de entrar em detalhes.';
+    if (fam === 'table') return 'Comece aqui pra situar os números exatos que sustentam a conversa.';
+    if (fam === 'comparar' || fam === 'bar' || fam === 'parte-todo') return 'Mostre o panorama geral primeiro — quem está à frente, quem está atrás.';
+    if (fam === 'tendencia' || fam === 'line') return 'Depois, mostre como isso mudou ao longo do tempo — é aqui que entra o "o que aconteceu".';
+    if (fam === 'relacao' || fam === 'scatter') return 'Feche mostrando a relação ou a causa — o "por quê", que leva à conclusão.';
+    return 'Encaixe de acordo com o que fizer mais sentido pro seu público.';
+  }
+  function renderStoryCard(bigIdea, orderedItems) {
+    const card = document.createElement('div');
+    card.className = 'story-card';
+    card.innerHTML = `
+      <div class="section-label">Roteiro sugerido — Lição 6 do livro (conte uma história)</div>
+      <h3>Uma ordem pra apresentar isso</h3>
+      <div class="big-idea">${escXml(bigIdea)}</div>
+      <ol class="story-steps">${orderedItems.map(it => `<li><div><b>${escXml(it.title)}</b><br><span>${escXml(storyRationale(it.family))}</span></div></li>`).join('')}</ol>
+    `;
+    return card;
+  }
+
+  function buildRecommendation(f, variant) {
+    variant = variant || 0;
+
+    if (f.precisao) {
+      return { name: 'Tabela', options: [
+        { tag: 'Tabela', lesson: LESSON.escolha,
+          why: [ 'Se as pessoas vão conferir número por número, a tabela mostra isso melhor que qualquer gráfico — sem precisar adivinhar o tamanho de uma barra.',
+                 'Se também importa notar padrões rápido, dá pra colorir sutilmente as células com os valores mais altos.' ],
+          avoid: [ 'Trocar por um gráfico só pra "parecer mais visual" — quando a leitura é número a número, o gráfico atrapalha mais do que ajuda.' ],
+          render: (el) => { el.innerHTML = demoTableHTML(); } },
+        { tag: 'Colunas simples', lesson: LESSON.escolha,
+          why: [ 'Os mesmos números, em colunas — ajuda a bater o olho e comparar rápido, além de conferir os valores exatos na tabela.' ],
+          avoid: [],
+          render: (el) => columnChart(el, demoTableAsColumns(), {highlight:'max'}) },
+      ]};
+    }
+
+    if (f.objetivo === 'kpi') {
+      const d = pick(DEMO.kpi, variant);
+      return { name: 'Número único (KPI)', options: [
+        { tag: 'Número + contexto', lesson: LESSON.escolha,
+          why: [ 'Quando só um valor importa, mostrar esse número bem grande é o jeito mais rápido de passar a mensagem — sem gráfico ao redor competindo com ele.',
+                 'Um textinho de contexto (ex.: "vs. mês anterior") mostra se subiu ou caiu, sem tirar o foco do número principal.' ],
+          avoid: [ 'Colocar esse número dentro de uma barra sozinha — uma barra sem nada pra comparar do lado não ajuda em nada.' ],
+          render: (el) => kpiTile(el, d.value, d.label, null) },
+        { tag: 'Comparar com antes', lesson: LESSON.atencao,
+          why: [ 'Se o que mais importa é mostrar a diferença entre agora e antes, duas colunas lado a lado deixam essa diferença bem visível.' ],
+          avoid: [],
+          render: (el) => columnChart(el, [{label:'Antes', value: parseFloat(String(d.prev).replace(/[^\d.,]/g,'').replace(',','.')) || 1}, {label:'Agora', value: parseFloat(String(d.value).replace(/[^\d.,]/g,'').replace(',','.')) || 1}], {highlight:1}) },
+      ]};
+    }
+
+    if (f.objetivo === 'relacao') {
+      const pts = pick(DEMO.scatter, variant);
+      return { name: 'Relação entre duas variáveis', options: [
+        { tag: 'Dispersão', lesson: LESSON.escolha,
+          why: [ 'Cada pontinho é um caso — a posição dele mostra os dois números ao mesmo tempo. Se os pontos formam meio que uma linha inclinada, é sinal de que os números andam juntos.',
+                 'Pontos bem fora do grupo também ficam fáceis de notar — são os casos fora do padrão.' ],
+          avoid: [ 'Ligar os pontos com uma linha — a ordem entre eles não significa nada aqui, então a linha só confunde.' ],
+          render: (el) => scatterChart(el, pts, {xLabel:'Investimento', yLabel:'Conversões'}) },
+        { tag: 'Tabela de exemplos', lesson: LESSON.escolha,
+          why: [ 'Se você quer conferir alguns números específicos em vez do padrão geral, uma tabela com exemplos ajuda a validar o que o gráfico mostra.' ],
+          avoid: [],
+          render: (el) => { el.innerHTML = demoScatterTableHTML(pts); } },
+      ]};
+    }
+
+    if (f.objetivo === 'parte-todo') {
+      const manySeries = f.tempo && f.cardinalidade !== 'poucas';
+      if (manySeries) {
+        const series = pick(DEMO.smallMultiples, variant);
+        return { name: 'Como as partes mudam ao longo do tempo', options: [
+          { tag: 'Gráficos lado a lado', lesson: LESSON.desordem,
+            why: [ 'Cada parte ganha seu próprio quadradinho, do mesmo tamanho — assim dá pra comparar sem que tudo vire uma bagunça de linhas coloridas.',
+                   'Como todos usam a mesma escala, comparar a altura entre os quadrinhos já mostra quem cresce mais.' ],
+            avoid: [ 'Colocar mais de 4 linhas coloridas juntas no mesmo gráfico — fica difícil saber qual é qual.' ],
+            render: (el) => smallMultiples(el, series) },
+          { tag: 'Colunas empilhadas', lesson: LESSON.escolha,
+            why: [ 'Cada período vira uma coluna, dividida nas partes que a compõem — bom pra ver como a composição muda de um período pro outro.',
+                   'As cores identificam cada parte; a legenda embaixo mostra o que é o quê.' ],
+            avoid: [],
+            render: (el) => stackedColumnsChart(el, seriesToStackedColumns(series)) },
+        ]};
+      }
+      return { name: 'Como as partes compõem o todo', options: [
+        { tag: 'Barra única', lesson: LESSON.atencao,
+          why: [ 'Uma única barra, dividida nas partes que compõem o todo — a maior fatia já aparece destacada e com o percentual escrito do lado.',
+                 'É rápido de ler porque está tudo num só lugar, sem precisar comparar barras separadas.' ],
+          avoid: [ 'Pizza ou donut — comparar o tamanho de fatias e ângulos é mais difícil pro olho do que comparar comprimentos numa barra.' ],
+          render: (el) => stackedBarChart(el, pick(DEMO.stacked, variant)) },
+        { tag: 'Colunas empilhadas', lesson: LESSON.escolha,
+          why: [ 'Se o que importa é ver como a composição muda de um período pro outro (não só um instante), colunas empilhadas lado a lado mostram isso melhor.' ],
+          avoid: [],
+          render: (el) => stackedColumnsChart(el, pick(DEMO.stackedCols, 0)) },
+      ]};
+    }
+
+    if (f.objetivo === 'tendencia') {
+      const manySeries = f.cardinalidade !== 'poucas';
+      if (manySeries) {
+        const series = pick(DEMO.smallMultiples, variant);
+        return { name: 'Tendência de várias séries', options: [
+          { tag: 'Gráficos lado a lado', lesson: LESSON.desordem,
+            why: [ 'Várias linhas coloridas juntas no mesmo gráfico viram um emaranhado difícil de seguir.',
+                   'Um quadradinho por série, todos na mesma escala, compara melhor do que uma "salada" de linhas.' ],
+            avoid: [ 'Linha única com mais de 4 séries sobrepostas.', 'Um segundo eixo pra "encaixar" escalas diferentes — isso distorce a comparação visual.' ],
+            render: (el) => smallMultiples(el, series) },
+          { tag: 'Colunas empilhadas', lesson: LESSON.escolha,
+            why: [ 'Cada período vira uma coluna dividida nas séries que a compõem — ajuda a ver tanto o total quanto a participação de cada uma.' ],
+            avoid: [],
+            render: (el) => stackedColumnsChart(el, seriesToStackedColumns(series)) },
+        ]};
+      }
+      const d = pick(DEMO.line, variant);
+      return { name: 'Tendência ao longo do tempo', options: [
+        { tag: 'Linha', lesson: LESSON.escolha,
+          why: [ 'Uma linha só, subindo e descendo, mostra a tendência de um jeito que o olho acompanha naturalmente.',
+                 'Só o valor mais recente aparece escrito — o resto fica mais discreto pra não poluir a leitura.' ],
+          avoid: [ 'Usar colunas quando a série for longa — funciona bem com poucos períodos, mas com muitos a linha conta a história melhor.' ],
+          render: (el) => lineChart(el, d, {}) },
+        { tag: 'Colunas verticais', lesson: LESSON.escolha,
+          why: [ 'Mesmos números, um período do lado do outro — ajuda quando você quer comparar valor a valor, não só ver a tendência geral.' ],
+          avoid: [],
+          render: (el) => columnChart(el, d, {highlight:d.length-1}) },
+      ]};
+    }
+
+    // comparar categorias
+    if (f.cardinalidade === 'muitas') {
+      const d = pick(DEMO.barTop, variant);
+      return { name: 'Comparação entre muitas categorias', options: [
+        { tag: 'Barras horizontais', lesson: LESSON.desordem,
+          why: [ 'Com mais de 10 categorias, mostrar todas vira ruído — por isso só as principais aparecem, e o resto entra num grupo "Outros".',
+                 'Ficam ordenadas da maior pra menor, então dá pra ver o ranking batendo o olho.' ],
+          avoid: [ 'Pizza com muitas fatias pequenas.', 'Escrever o valor em cada barra se a lista for longa — deixa a tela poluída.' ],
+          render: (el) => hBarChart(el, d, {highlight:'max'}) },
+        { tag: 'Colunas verticais', lesson: LESSON.desordem,
+          why: [ 'Mesma ideia, em pé — funciona bem com poucas categorias por vez; com nomes longos, fica apertado.' ],
+          avoid: [],
+          render: (el) => columnChart(el, d, {highlight:'max'}) },
+      ]};
+    }
+    const d = pick(DEMO.bar, variant);
+    return { name: 'Comparação entre categorias', options: [
+      { tag: 'Barras horizontais', lesson: LESSON.escolha,
+        why: [ 'Cada barra é uma categoria — quanto maior, mais ela vale. Como cresce da esquerda pra direita, dá pra ler nomes compridos sem cortar o texto.',
+               'A categoria mais importante pra sua história fica destacada em azul; as outras ficam em cinza, sem competir pela atenção.' ],
+        avoid: [ 'Pizza, donut ou gráfico 3D — todos pedem esforço extra do olho pra tirar um valor que a barra entrega de cara.' ],
+        render: (el) => hBarChart(el, d, {highlight:'max'}) },
+      { tag: 'Colunas verticais', lesson: LESSON.escolha,
+        why: [ 'A mesma comparação, só que em pé — funciona bem quando os nomes das categorias são curtos e cabem embaixo de cada coluna.' ],
+        avoid: [ 'Se os nomes forem longos, prefira a versão em barras horizontais — em colunas eles ficam espremidos ou cortados.' ],
+        render: (el) => columnChart(el, d, {highlight:'max'}) },
+    ]};
+  }
+
+  function demoTableHTML() {
+    const rows = [['Canal','Investimento','Conversões','CPA'],['Busca paga','R$ 12.400','340','R$ 36,47'],['Social','R$ 8.900','210','R$ 42,38'],['E-mail','R$ 1.200','95','R$ 12,63']];
+    let html = '<div class="table-wrap"><table class="datatable"><thead><tr>' + rows[0].map(h=>`<th>${h}</th>`).join('') + '</tr></thead><tbody>';
+    for (let i=1;i<rows.length;i++) html += '<tr>' + rows[i].map(c=>`<td>${c}</td>`).join('') + '</tr>';
+    html += '</tbody></table></div>';
+    return html;
+  }
+
+  function demoTableAsColumns() {
+    return [ {label:'Busca paga', value:12400}, {label:'Social', value:8900}, {label:'E-mail', value:1200} ];
+  }
+
+  function demoScatterTableHTML(pts) {
+    const sample = pts.slice(0, 6);
+    let html = '<div class="table-wrap"><table class="datatable"><thead><tr><th>Caso</th><th>Investimento</th><th>Conversões</th></tr></thead><tbody>';
+    sample.forEach(p => { html += `<tr><td>${escXml(p.label||'')}</td><td>${fmtNum(p.x)}</td><td>${fmtNum(p.y)}</td></tr>`; });
+    html += '</tbody></table></div>';
+    return html;
+  }
+
+  /* ---------------- shared card / page renderer ---------------- */
+
+  function renderVizCard(container, card) {
+    const options = card.options && card.options.length ? card.options : [card];
+    const el = document.createElement('div');
+    el.className = 'viz-card';
+    el.innerHTML = `<h4 class="viz-card-title">${escXml(card.title)}</h4>`;
+
+    let pillsEl = null;
+    if (options.length > 1) {
+      pillsEl = document.createElement('div');
+      pillsEl.className = 'option-pills';
+      options.forEach((opt, i) => {
+        const pill = document.createElement('button');
+        pill.type = 'button';
+        pill.className = 'option-pill' + (i === 0 ? ' active' : '');
+        pill.textContent = opt.tag;
+        pill.addEventListener('click', () => showOption(i));
+        pillsEl.appendChild(pill);
+      });
+      el.appendChild(pillsEl);
+    } else if (options[0].tag) {
+      const tagEl = document.createElement('span');
+      tagEl.className = 'viz-card-tag';
+      tagEl.textContent = options[0].tag;
+      el.insertBefore(tagEl, el.firstChild);
+    }
+
+    const box = document.createElement('div');
+    box.className = 'chart-box';
+    el.appendChild(box);
+
+    const why = document.createElement('div');
+    why.className = 'why-block';
+    el.appendChild(why);
+
+    function showOption(idx) {
+      const opt = options[idx];
+      if (pillsEl) Array.from(pillsEl.children).forEach((p,i) => p.classList.toggle('active', i === idx));
+      box.innerHTML = '';
+      opt.render(box);
+      let inner = `<div class="mini-label">Por que este gráfico</div><ul class="why-list">${opt.why.map(w=>`<li>${escXml(w)}</li>`).join('')}</ul>`;
+      if (opt.avoid && opt.avoid.length) inner += `<div class="mini-label">Evite</div><ul class="avoid-list">${opt.avoid.map(w=>`<li>${escXml(w)}</li>`).join('')}</ul>`;
+      if (opt.lesson) inner += `<div class="lesson-tag">Baseado na ${escXml(opt.lesson)}.</div>`;
+      why.innerHTML = inner;
+    }
+    if (card.insights && card.insights.length) {
+      const insBlock = document.createElement('div');
+      insBlock.className = 'why-block';
+      insBlock.innerHTML = `<div class="mini-label">${escXml(card.insightLabel || 'Perguntas pra achar o insight')}</div><ul class="insight-list${card.insightsComputed ? ' computed' : ''}">${card.insights.map(w=>`<li>${escXml(w)}</li>`).join('')}</ul>`;
+      el.appendChild(insBlock);
+    }
+
+    showOption(0);
+    container.appendChild(el);
+  }
+
+  function renderVizPage(container, cards, omittedCount, headerTitle, headerSub, storyCardEl) {
+    container.innerHTML = '';
+    if (!cards.length) {
+      container.innerHTML = '<p class="result-empty">Nada para mostrar ainda.</p>';
+      return;
+    }
+    if (headerTitle) {
+      const head = document.createElement('div');
+      head.className = 'page-header';
+      head.innerHTML = `<h3>${escXml(headerTitle)}</h3><span>${escXml(headerSub || '')}</span>`;
+      container.appendChild(head);
+    }
+    if (storyCardEl) container.appendChild(storyCardEl);
+    if (omittedCount > 0) {
+      const note = document.createElement('div');
+      note.className = 'page-note';
+      note.textContent = `Mostrando ${cards.length} de ${cards.length + omittedCount} — para manter a página fácil de ler, o restante foi omitido. Gere outra página se precisar do resto.`;
+      container.appendChild(note);
+    }
+    const grid = document.createElement('div');
+    grid.className = 'viz-grid';
+    container.appendChild(grid);
+    cards.forEach(c => renderVizCard(grid, c));
+  }
+
+  /* ---------------- Pagination (page 1: plataforma / page 2: ferramentas) ---------------- */
+
+  const PAGE_IDS = ['1', '2'];
+  const pagerSteps = { '1': document.getElementById('pager-1'), '2': document.getElementById('pager-2') };
+  const pageViews = { '1': document.getElementById('page-1'), '2': document.getElementById('page-2') };
+
+  function showPage(id) {
+    PAGE_IDS.forEach(pid => {
+      const isActive = pid === id;
+      pagerSteps[pid].classList.toggle('active', isActive);
+      pageViews[pid].classList.toggle('active', isActive);
+    });
+    if (id === '2') closeToolDetail();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  PAGE_IDS.forEach(id => pagerSteps[id].addEventListener('click', () => showPage(id)));
+  document.getElementById('brand-home').addEventListener('click', () => showPage('1'));
+
+  /* ---------------- Tools drill-down (within page 2) ---------------- */
+
+  const TAB_IDS = ['a', 'b', 'c'];
+  const tabPanels = { a: document.getElementById('tab-a'), b: document.getElementById('tab-b'), c: document.getElementById('tab-c') };
+  const toolsList = document.getElementById('tools-list');
+  const toolDetail = document.getElementById('tool-detail');
+
+  function activateTab(which) {
+    TAB_IDS.forEach(id => tabPanels[id].classList.toggle('active', id === which));
+  }
+  function openTool(which) {
+    activateTab(which);
+    toolsList.style.display = 'none';
+    toolDetail.style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function closeToolDetail() {
+    toolDetail.style.display = 'none';
+    toolsList.style.display = 'block';
+  }
+  document.querySelectorAll('.tool-block').forEach(btn => btn.addEventListener('click', () => openTool(btn.dataset.tool)));
+  document.getElementById('btn-back-tools').addEventListener('click', closeToolDetail);
+
+  /* ---------------- TAB A: multi-KPI form ---------------- */
+
+  let kpiCounter = 0;
+  const kpiRows = document.getElementById('kpi-rows');
+  const addKpiBtn = document.getElementById('btn-add-kpi');
+  const kpiLimitMsg = document.getElementById('kpi-limit-msg');
+
+  function guessObjetivo(nameRaw) {
+    const s = nameRaw.toLowerCase();
+    if (/tend[eê]ncia|evolu|mensal|di[aá]ri|semanal|hist[oó]rico|ao longo do tempo|trimestral|anual|crescimento|varia[cç][aã]o/.test(s)) return { objetivo:'tendencia', tempo:true };
+    if (/participa|composi|distribui|percentual|%|share|propor[cç][aã]o|mix de|fatia/.test(s)) return { objetivo:'parte-todo', tempo:false };
+    if (/correla|rela[cç][aã]o entre|impacto de|\bvs\.?\b|versus|influ[eê]ncia entre/.test(s)) return { objetivo:'relacao', tempo:false };
+    if (/^(taxa de|[ií]ndice|nps|ticket m[eé]dio|churn|receita total|total de|n[uú]mero de)/.test(s) && !/\bpor\b/.test(s)) return { objetivo:'kpi', tempo:false };
+    if (/\bpor\b/.test(s)) return { objetivo:'comparar', tempo:false };
+    return null;
+  }
+
+  function kpiRowTemplate() {
+    const row = document.createElement('div');
+    row.className = 'kpi-row';
+    row.innerHTML = `
+      <div>
+        <input type="text" class="kr-nome" placeholder="Ex.: Receita por região, Conversão mensal...">
+        <div class="auto-tag">sugerido a partir do nome</div>
+      </div>
+      <select class="kr-objetivo">
+        <option value="comparar">Comparar categorias</option>
+        <option value="tendencia">Tendência no tempo</option>
+        <option value="parte-todo">Partes de um todo</option>
+        <option value="relacao">Relação entre variáveis</option>
+        <option value="kpi">Número-chave único</option>
+      </select>
+      <select class="kr-cardinalidade">
+        <option value="poucas">2 a 5 categorias</option>
+        <option value="media">6 a 10 categorias</option>
+        <option value="muitas">Mais de 10</option>
+      </select>
+      <label class="checkrow"><input type="checkbox" class="kr-tempo"> Tempo</label>
+      <label class="checkrow"><input type="checkbox" class="kr-precisao"> Preciso</label>
+      <button class="kr-remove" type="button" aria-label="Remover KPI">×</button>
+    `;
+    const nomeInput = row.querySelector('.kr-nome');
+    const objSel = row.querySelector('.kr-objetivo');
+    const tempoBox = row.querySelector('.kr-tempo');
+    const autoTag = row.querySelector('.auto-tag');
+    let objTouched = false;
+    objSel.addEventListener('change', () => { objTouched = true; autoTag.classList.remove('show'); });
+    tempoBox.addEventListener('change', () => { objTouched = true; });
+    nomeInput.addEventListener('input', () => {
+      if (objTouched) return;
+      const guess = guessObjetivo(nomeInput.value.trim());
+      if (guess) {
+        objSel.value = guess.objetivo;
+        tempoBox.checked = guess.tempo;
+        autoTag.classList.add('show');
+      } else {
+        autoTag.classList.remove('show');
+      }
+    });
+    row.querySelector('.kr-remove').addEventListener('click', () => { row.remove(); syncKpiLimit(); });
+    return row;
+  }
+
+  function addKpiRow() {
+    if (kpiRows.children.length >= MAX_VIZ) return;
+    kpiCounter++;
+    kpiRows.appendChild(kpiRowTemplate());
+    syncKpiLimit();
+  }
+  function syncKpiLimit() {
+    const atLimit = kpiRows.children.length >= MAX_VIZ;
+    addKpiBtn.disabled = atLimit;
+    kpiLimitMsg.style.display = atLimit ? 'block' : 'none';
+  }
+  addKpiBtn.addEventListener('click', addKpiRow);
+  addKpiRow();
+  addKpiRow();
+
+  document.getElementById('btn-recomendar').addEventListener('click', () => {
+    const cards = [];
+    Array.from(kpiRows.children).forEach((row, idx) => {
+      const f = {
+        objetivo: row.querySelector('.kr-objetivo').value,
+        cardinalidade: row.querySelector('.kr-cardinalidade').value,
+        tempo: row.querySelector('.kr-tempo').checked,
+        precisao: row.querySelector('.kr-precisao').checked,
+      };
+      const nome = row.querySelector('.kr-nome').value.trim();
+      const rec = buildRecommendation(f, idx);
+      const family = f.precisao ? 'table' : f.objetivo;
+      cards.push({
+        title: nome || rec.name, options: rec.options, family,
+        insights: getQuestions(family), insightLabel: 'Perguntas pra achar o insight (sem dados reais, então fica mais genérico)', insightsComputed: false,
+      });
+    });
+
+    let storyCardEl = null;
+    if (cards.length) {
+      const ordered = suggestOrder(cards.map(c => ({ title: c.title, family: c.family })));
+      const bigIdea = cards.length > 1
+        ? `Comece afirmando o principal aprendizado sobre "${ordered[0].title}" antes de mostrar os gráficos (ex.: "nosso resultado foi puxado principalmente por X") — isso dá ao público um motivo pra prestar atenção.`
+        : `Abra com uma frase que já entrega a conclusão sobre "${ordered[0].title}" (ex.: "isso mudou por causa de X") — o gráfico entra depois, como prova.`;
+      storyCardEl = renderStoryCard(bigIdea, ordered);
+    }
+    renderVizPage(document.getElementById('result-a'), cards, 0, 'Sua página de visualizações', `${cards.length} KPI${cards.length>1?'s':''}`, storyCardEl);
+  });
+
+  /* ---------------- TAB B: CSV pipeline ---------------- */
+
+  let dataset = { header: [], rows: [], types: {} };
+
+  function tryParseNumber(s) {
+    if (s == null) return null;
+    s = String(s).trim();
+    if (s === '') return null;
+    let t = s;
+    if (/^-?\d{1,3}(\.\d{3})*(,\d+)?$/.test(t)) t = t.replace(/\./g,'').replace(',','.');
+    else if (/^-?\d+(,\d+)?$/.test(t)) t = t.replace(',','.');
+    else if (!/^-?\d+(\.\d+)?$/.test(t)) return null;
+    const n = parseFloat(t);
+    return isNaN(n) ? null : n;
+  }
+  function formatDateLabel(d, withYear) {
+    const MONTHS = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    const base = `${String(d.getDate()).padStart(2,'0')} ${MONTHS[d.getMonth()]}`;
+    return withYear ? `${base}/${d.getFullYear()}` : base;
+  }
+  function spansMultipleYears(dates) {
+    const years = new Set(dates.map(d => d.getFullYear()));
+    return years.size > 1;
+  }
+  function twoDigitYear(yy) {
+    yy = +yy;
+    return yy <= 68 ? 2000 + yy : 1900 + yy;
+  }
+  function tryParseDate(s) {
+    if (s == null) return null;
+    s = String(s).trim();
+    let m;
+    // ano primeiro (aceita hora/timezone grudados no final, ex: "2024-01-01 00:00" ou "2024-01-01T00:00Z")
+    if ((m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/))) return new Date(+m[1], +m[2]-1, +m[3]);
+    if ((m = s.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})/))) return new Date(+m[1], +m[2]-1, +m[3]);
+    // dia primeiro (também aceita hora grudada no final)
+    if ((m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/))) return new Date(+m[3], +m[2]-1, +m[1]);
+    if ((m = s.match(/^(\d{1,2})-(\d{1,2})-(\d{4})/))) return new Date(+m[3], +m[2]-1, +m[1]);
+    // só ano e mês (ex: dados mensais) — assume dia 1
+    if ((m = s.match(/^(\d{4})-(\d{1,2})$/))) return new Date(+m[1], +m[2]-1, 1);
+    if ((m = s.match(/^(\d{4})\/(\d{1,2})$/))) return new Date(+m[1], +m[2]-1, 1);
+    // dia primeiro com ano de 2 dígitos (ex: "13/10/94") — 00-68 vira 20xx, 69-99 vira 19xx
+    if ((m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2})$/))) return new Date(twoDigitYear(m[3]), +m[2]-1, +m[1]);
+    if ((m = s.match(/^(\d{1,2})-(\d{1,2})-(\d{2})$/))) return new Date(twoDigitYear(m[3]), +m[2]-1, +m[1]);
+    return null;
+  }
+
+  function parseCSV(text) {
+    const lines = text.split(/\r\n|\n|\r/).filter(l => l.trim() !== '').slice(0, 30001);
+    if (lines.length < 2) return { header: [], rows: [] };
+    const commaCount = (lines[0].match(/,/g)||[]).length;
+    const semiCount = (lines[0].match(/;/g)||[]).length;
+    const delim = semiCount > commaCount ? ';' : ',';
+    const clean = c => c.trim().replace(/^"(.*)"$/, '$1').trim();
+    const header = lines[0].split(delim).map(clean);
+    const rows = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cells = lines[i].split(delim).map(clean);
+      const obj = {};
+      header.forEach((h, idx) => obj[h] = cells[idx] !== undefined ? cells[idx] : '');
+      rows.push(obj);
+    }
+    return { header, rows };
+  }
+
+  function detectType(rows, col) {
+    const sample = rows.slice(0, 300).map(r => r[col]).filter(v => v !== '' && v != null);
+    if (sample.length === 0) return 'string';
+    const numMatches = sample.filter(v => tryParseNumber(v) !== null).length;
+    if (numMatches / sample.length >= 0.7) return 'number';
+    const dateMatches = sample.filter(v => tryParseDate(v) !== null).length;
+    if (dateMatches / sample.length >= 0.7) return 'date';
+    return 'string';
+  }
+
+  function loadDataset(header, rows) {
+    dataset.header = header;
+    dataset.rows = rows;
+    dataset.types = {};
+    header.forEach(col => dataset.types[col] = detectType(rows, col));
+    renderColsGrid();
+    populateXSelect();
+    populateYChecks();
+    document.getElementById('data-card').style.display = 'block';
+    document.getElementById('btn-clear').style.display = 'inline-flex';
+    autoRenderFromDataset();
+  }
+
+  function clearDataset() {
+    dataset = { header: [], rows: [], types: {} };
+    document.getElementById('data-card').style.display = 'none';
+    document.getElementById('btn-clear').style.display = 'none';
+    document.getElementById('file-input').value = '';
+    document.getElementById('file-name').textContent = '';
+    document.getElementById('result-b').innerHTML = '';
+  }
+  document.getElementById('btn-clear').addEventListener('click', clearDataset);
+
+  function renderColsGrid() {
+    const grid = document.getElementById('cols-grid');
+    const labelFor = { number:'123 número', date:'📅 data', string:'Abc categoria' };
+    grid.innerHTML = dataset.header.map(c => `<span class="col-pill">${escXml(c)} <span class="type">${labelFor[dataset.types[c]]}</span></span>`).join('');
+  }
+
+  function bestXColumn() {
+    const dateCols = dataset.header.filter(c => dataset.types[c] === 'date');
+    const strCols = dataset.header.filter(c => dataset.types[c] === 'string');
+    const numCols = dataset.header.filter(c => dataset.types[c] === 'number');
+    return dateCols[0] || strCols[0] || numCols[0] || dataset.header[0];
+  }
+
+  function populateXSelect() {
+    const selX = document.getElementById('sel-x');
+    selX.innerHTML = dataset.header.map(c => `<option value="${escAttr(c)}">${escXml(c)} (${dataset.types[c]})</option>`).join('');
+    selX.value = bestXColumn();
+    selX.onchange = () => { populateYChecks(); };
+  }
+
+  function populateYChecks() {
+    const xCol = document.getElementById('sel-x').value;
+    const wrap = document.getElementById('y-checks');
+    const candidates = dataset.header.filter(c => c !== xCol);
+    const numCols = candidates.filter(c => dataset.types[c] === 'number');
+    const defaultChecked = new Set((numCols.length ? numCols : candidates).slice(0, MAX_VIZ));
+    wrap.innerHTML = candidates.map(c => `
+      <label class="y-check ${defaultChecked.has(c)?'checked':''}">
+        <input type="checkbox" value="${escAttr(c)}" ${defaultChecked.has(c)?'checked':''}> ${escXml(c)}
+      </label>
+    `).join('');
+    wrap.querySelectorAll('.y-check').forEach(lab => {
+      const cb = lab.querySelector('input');
+      cb.addEventListener('change', () => lab.classList.toggle('checked', cb.checked));
+    });
+  }
+
+  function groupSum(rows, xCol, yCol) {
+    const map = new Map();
+    rows.forEach(r => {
+      const k = (r[xCol] || '').trim() || '—';
+      const v = tryParseNumber(r[yCol]);
+      if (v == null) return;
+      map.set(k, (map.get(k)||0) + v);
+    });
+    return [...map.entries()].map(([label,value]) => ({label, value})).sort((a,b) => b.value - a.value);
+  }
+
+  function cardForPair(xCol, yCol) {
+    const xType = dataset.types[xCol], yType = dataset.types[yCol];
+    let key = null, effX = xCol, effY = yCol;
+    if (xType === 'date' && yType === 'number') key = 'line';
+    else if (xType === 'string' && yType === 'number') key = 'bar';
+    else if (xType === 'number' && yType === 'number') key = 'scatter';
+    else if (xType === 'number' && yType === 'date') { key = 'line'; effX = yCol; effY = xCol; }
+    else if (xType === 'number' && yType === 'string') { key = 'bar'; effX = yCol; effY = xCol; }
+
+    if (!key) {
+      return { title: yCol, options: [{ tag: 'sem combinação direta',
+        why: [`"${xCol}" e "${yCol}" não combinam de um jeito direto — troque um dos dois por uma coluna numérica.`],
+        avoid: [], render: (el) => { el.innerHTML = '<p class="result-empty">Sem visualização para esta combinação.</p>'; } }] };
+    }
+
+    if (key === 'bar') {
+      let items = groupSum(dataset.rows, effX, effY);
+      const distinctCount = items.length;
+      const looksMisdetected = distinctCount > 20 && distinctCount > dataset.rows.length * 0.6;
+      let note = null;
+      if (items.length > 12) {
+        const rest = items.slice(11).reduce((a,d)=>a+d.value,0);
+        items = items.slice(0,11).concat([{label:'Outros', value: rest}]);
+        note = 'As categorias além das 12 principais foram somadas em "Outros" pra não poluir a tela.';
+      }
+      const whyBar = [ `"${effX}" vira cada barra e "${effY}" define o tamanho dela — quanto maior o valor, mais comprida a barra.`, 'Ordenar do maior pro menor já facilita achar o que mais importa, sem precisar de mais nada na tela.' ];
+      if (looksMisdetected) whyBar.unshift(`⚠️ A coluna "${effX}" tem ${distinctCount} valores quase todos diferentes entre si — pode ser que na verdade seja uma data, hora ou identificador que não foi reconhecido como tal (em vez de uma categoria de verdade). Se for isso, os números abaixo não são confiáveis — confira o formato dessa coluna ou tente a opção "Linha (ordem do arquivo)".`);
+      if (note) whyBar.push(note);
+      return { title: effY, family: 'bar',
+        insights: looksMisdetected ? ['Os insights automáticos foram desativados aqui porque a coluna parece não ser uma categoria de verdade — corrija o formato dela e reenvie pra ver números confiáveis.'] : barInsights(items).concat([REFLECT_PROMPT]),
+        insightLabel: 'O que os números mostram', insightsComputed: true,
+        options: [
+        { tag: 'Barras horizontais', lesson: LESSON.escolha, why: whyBar, avoid: ['Pizza se tiver mais de 5 categorias — comparar comprimento é mais fácil que comparar fatias.'],
+          render: (el) => hBarChart(el, items, {highlight:'max'}) },
+        { tag: 'Colunas verticais', lesson: LESSON.escolha, why: [ 'Os mesmos dados em pé — funciona bem se os nomes das categorias forem curtos.' ],
+          avoid: items.some(d => d.label.length > 12) ? ['Alguns nomes aqui são longos e podem ficar cortados nesta versão — se isso incomodar, use a de barras horizontais.'] : [],
+          render: (el) => columnChart(el, items, {highlight:'max'}) },
+        { tag: 'Linha (ordem do arquivo)', lesson: LESSON.escolha,
+          why: [ 'Se as linhas do seu arquivo já seguem uma sequência que importa — por exemplo, uma coluna de data que não foi reconhecida automaticamente — essa visão mostra a evolução na ordem em que elas aparecem.' ],
+          avoid: [ 'Se a ordem das linhas não significar nada (não é cronológica nem sequencial), essa visão pode enganar — nesse caso, use as barras ou colunas.' ],
+          render: (el) => {
+            let raw = dataset.rows.map(r => ({ label: (r[effX] || '').trim() || '—', value: tryParseNumber(r[effY]) })).filter(d => d.value != null);
+            const rStep = Math.max(1, Math.ceil(raw.length / 60));
+            raw = raw.filter((_, i) => i % rStep === 0);
+            if (raw.length < 2) el.innerHTML = '<p class="result-empty">Poucos pontos válidos pra desenhar a linha.</p>';
+            else lineChart(el, raw, {});
+          } },
+      ]};
+    }
+    if (key === 'line') {
+      const fullPts = dataset.rows.map(r => ({ d: tryParseDate(r[effX]), v: tryParseNumber(r[effY]) }))
+        .filter(p => p.d && p.v != null).sort((a,b) => a.d - b.d);
+      if (fullPts.length < 2) {
+        return { title: effY, options: [{ tag: 'linha', why: ['Não há pontos suficientes com data e número válidos para desenhar um gráfico aqui.'], avoid: [], render: (el) => { el.innerHTML = '<p class="result-empty">Poucos pontos válidos.</p>'; } }] };
+      }
+      const multiYear = spansMultipleYears(fullPts.map(p => p.d));
+      const fullItems = fullPts.map(p => ({ label: formatDateLabel(p.d, multiYear), value: p.v }));
+      const wasSampled = fullItems.length > 200;
+      const colItems = smartSample(fullItems, 30);
+      return { title: effY, family: 'line',
+        insights: lineInsights(fullItems).concat([REFLECT_PROMPT]), insightLabel: 'O que os números mostram', insightsComputed: true,
+        options: [
+        { tag: 'Linha', lesson: LESSON.escolha, why: [ 'Como "'+effX+'" é uma data, uma linha mostra a tendência de "'+effY+'" subindo e descendo ao longo do tempo — o jeito mais natural de ler evolução.' ]
+            .concat(wasSampled ? [`Seu arquivo tem ${fullItems.length} pontos nessa coluna — pra não poluir o gráfico, mostramos uma seleção que preserva o início, o fim, o maior, o menor e as maiores mudanças. Use o filtro de período abaixo do gráfico pra escolher outra faixa de datas.`] : []),
+          avoid: ['Trocar por colunas se a série for muito longa — a linha conta a história melhor quando há muitos pontos.'],
+          render: (el) => renderLineWithRangeFilter(el, fullPts, multiYear) },
+        { tag: 'Colunas verticais', lesson: LESSON.escolha, why: [ 'Mesmos números, um período do lado do outro — ajuda a comparar valor a valor em vez de só ver a curva geral.' ].concat(colItems.length < fullItems.length ? ['Para caber na tela, esta versão também usa uma seleção dos pontos mais relevantes.'] : []),
+          avoid: [],
+          render: (el) => columnChart(el, colItems, {highlight:colItems.length-1}) },
+      ]};
+    }
+    // scatter
+    let pts = dataset.rows.map(r => ({ x: tryParseNumber(r[effX]), y: tryParseNumber(r[effY]) })).filter(p => p.x != null && p.y != null);
+    const step = Math.max(1, Math.ceil(pts.length/300));
+    pts = pts.filter((_,i) => i % step === 0);
+    if (pts.length < 2) {
+      return { title: `${effX} × ${effY}`, options: [{ tag: 'dispersão', why: ['Não há pares numéricos suficientes para este gráfico.'], avoid: [], render: (el) => { el.innerHTML = '<p class="result-empty">Poucos pares válidos.</p>'; } }] };
+    }
+    return { title: `${effX} × ${effY}`, family: 'scatter',
+      insights: scatterInsights(pts).concat([REFLECT_PROMPT]), insightLabel: 'O que os números mostram', insightsComputed: true,
+      options: [
+      { tag: 'Dispersão', lesson: LESSON.escolha, why: [ 'Cada ponto cruza os valores de "'+effX+'" e "'+effY+'" para um mesmo caso — se os pontos formam uma linha inclinada, os dois números andam juntos.', 'Pontos bem afastados do grupo também aparecem fáceis de notar.' ],
+        avoid: ['Ligar os pontos com uma linha — a ordem entre eles não é temporal aqui, e a linha só confunde.'],
+        render: (el) => scatterChart(el, pts, {xLabel: effX, yLabel: effY}) },
+      { tag: 'Tabela de exemplos', lesson: LESSON.escolha, why: [ 'Alguns pares de valores em forma de tabela, pra conferir números específicos.' ],
+        avoid: [],
+        render: (el) => { el.innerHTML = demoRealPairsTableHTML(pts, effX, effY); } },
+    ]};
+  }
+
+  function demoRealPairsTableHTML(pts, xLabel, yLabel) {
+    const sample = pts.slice(0, 8);
+    let html = `<div class="table-wrap"><table class="datatable"><thead><tr><th>${escXml(xLabel)}</th><th>${escXml(yLabel)}</th></tr></thead><tbody>`;
+    sample.forEach(p => { html += `<tr><td>${fmtNum(p.x)}</td><td>${fmtNum(p.y)}</td></tr>`; });
+    html += '</tbody></table></div>';
+    return html;
+  }
+
+  function autoRenderFromDataset() {
+    const xCol = document.getElementById('sel-x').value;
+    const checked = Array.from(document.querySelectorAll('#y-checks input:checked')).map(cb => cb.value);
+    const yLimitMsg = document.getElementById('y-limit-msg');
+    yLimitMsg.style.display = checked.length > MAX_VIZ ? 'block' : 'none';
+    const yCols = checked.slice(0, MAX_VIZ);
+    const omitted = Math.max(0, checked.length - MAX_VIZ);
+
+    const resultEl = document.getElementById('result-b');
+    if (!yCols.length) { resultEl.innerHTML = '<p class="result-empty">Selecione ao menos uma coluna para visualizar.</p>'; return; }
+
+    const cards = yCols.map(y => cardForPair(xCol, y));
+
+    let storyCardEl = null;
+    const withFamily = cards.filter(c => c.family);
+    if (withFamily.length) {
+      const ordered = suggestOrder(withFamily.map(c => ({ title: c.title, family: c.family, insights: c.insights })));
+      const headline = ordered[0].insights && ordered[0].insights.length ? ordered[0].insights[0] : null;
+      const bigIdea = headline
+        ? `Comece por aí: "${headline}" — essa já é uma boa frase de abertura, antes de mostrar os gráficos.`
+        : `Comece resumindo em uma frase o principal aprendizado sobre "${ordered[0].title}" antes de mostrar os gráficos.`;
+      storyCardEl = renderStoryCard(bigIdea, ordered);
+    }
+    renderVizPage(resultEl, cards, omitted, 'Painel a partir dos seus dados', `${cards.length} visualização${cards.length>1?'ões':''} · eixo: ${xCol}`, storyCardEl);
+    appendDataViewOptions(resultEl, dataset.header, dataset.rows);
+  }
+
+  function fullTableHTML(header, rows) {
+    const RENDER_CAP = 3000;
+    const shown = rows.slice(0, RENDER_CAP);
+    let html = '<div class="table-wrap scroll"><table class="datatable"><thead><tr>' + header.map(h=>`<th>${escXml(h)}</th>`).join('') + '</tr></thead><tbody>';
+    shown.forEach(r => { html += '<tr>' + header.map(h=>`<td>${escXml(r[h])}</td>`).join('') + '</tr>'; });
+    html += '</tbody></table></div>';
+    if (rows.length > RENDER_CAP) {
+      html += `<div class="chart-caption">Mostrando as primeiras ${RENDER_CAP.toLocaleString('pt-BR')} de ${rows.length.toLocaleString('pt-BR')} linhas — limite só pra não travar a tabela na tela; os gráficos e insights acima já usam todas as linhas enviadas.</div>`;
+    } else {
+      html += `<div class="chart-caption">${rows.length} linha${rows.length===1?'':'s'} enviadas — nenhuma cortada.</div>`;
+    }
+    return html;
+  }
+
+  function summaryTableHTML(header, rows) {
+    let html = '<div class="table-wrap"><table class="datatable"><thead><tr><th>Coluna</th><th>Tipo</th><th>Resumo</th></tr></thead><tbody>';
+    header.forEach(col => {
+      const type = dataset.types[col];
+      const vals = rows.map(r => r[col]).filter(v => v !== '' && v != null);
+      let summary = `${vals.length} de ${rows.length} preenchidos`;
+      if (type === 'number') {
+        const nums = vals.map(tryParseNumber).filter(v => v != null);
+        if (nums.length) {
+          const min = Math.min(...nums), max = Math.max(...nums), sum = nums.reduce((a,b)=>a+b,0);
+          summary = `mín ${fmtNum(min)} · máx ${fmtNum(max)} · média ${fmtNum(sum/nums.length)}`;
+        }
+      } else if (type === 'date') {
+        const dates = vals.map(tryParseDate).filter(Boolean).sort((a,b)=>a-b);
+        if (dates.length) summary = `de ${formatDateLabel(dates[0], true)} até ${formatDateLabel(dates[dates.length-1], true)}`;
+      } else {
+        summary = `${new Set(vals).size} valores distintos`;
+      }
+      html += `<tr><td>${escXml(col)}</td><td>${escXml(type)}</td><td>${escXml(summary)}</td></tr>`;
+    });
+    html += '</tbody></table></div>';
+    return html;
+  }
+
+  function appendDataViewOptions(container, header, rows) {
+    const btn = document.createElement('button');
+    btn.className = 'toggle-table';
+    btn.type = 'button';
+    btn.textContent = 'Ver dados completos enviados';
+
+    const wrap = document.createElement('div');
+    wrap.style.display = 'none';
+
+    const pills = document.createElement('div');
+    pills.className = 'option-pills';
+    pills.style.marginTop = '.9rem';
+    const box = document.createElement('div');
+    const views = [
+      { tag: 'Tabela completa', render: () => fullTableHTML(header, rows) },
+      { tag: 'Resumo por coluna', render: () => summaryTableHTML(header, rows) },
+    ];
+    let built = false;
+    function showView(i) {
+      Array.from(pills.children).forEach((p, pi) => p.classList.toggle('active', pi === i));
+      box.innerHTML = views[i].render();
+    }
+    views.forEach((v, i) => {
+      const p = document.createElement('button');
+      p.type = 'button';
+      p.className = 'option-pill' + (i === 0 ? ' active' : '');
+      p.textContent = v.tag;
+      p.addEventListener('click', () => showView(i));
+      pills.appendChild(p);
+    });
+    wrap.appendChild(pills);
+    wrap.appendChild(box);
+
+    btn.addEventListener('click', () => {
+      const showing = wrap.style.display !== 'none';
+      if (!built) { showView(0); built = true; }
+      wrap.style.display = showing ? 'none' : 'block';
+      btn.textContent = showing ? 'Ver dados completos enviados' : 'Ocultar dados completos';
+    });
+    container.appendChild(btn);
+    container.appendChild(wrap);
+  }
+
+  document.getElementById('btn-atualizar').addEventListener('click', autoRenderFromDataset);
+
+  /* ---------------- XLSX reader (ZIP + XML nativos do navegador, sem biblioteca externa) ---------------- */
+
+  function readU32LE(view, off) { return view.getUint32(off, true); }
+  function readU16LE(view, off) { return view.getUint16(off, true); }
+
+  async function inflateRawBytes(bytes) {
+    if (typeof DecompressionStream === 'undefined') {
+      throw new Error('Este navegador não sabe descompactar .xlsx (falta a API DecompressionStream). Exporte como CSV e envie de novo.');
+    }
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+  }
+
+  function parseZipEntries(buf) {
+    const view = new DataView(buf);
+    const bytes = new Uint8Array(buf);
+    let eocd = -1;
+    const searchStart = Math.max(0, buf.byteLength - 22 - 65535);
+    for (let i = buf.byteLength - 22; i >= searchStart; i--) {
+      if (readU32LE(view, i) === 0x06054b50) { eocd = i; break; }
+    }
+    if (eocd === -1) throw new Error('Não achei o índice do arquivo ZIP — o .xlsx pode estar corrompido.');
+    const cdCount = readU16LE(view, eocd + 10);
+    let p = readU32LE(view, eocd + 16);
+    const entries = {};
+    for (let i = 0; i < cdCount; i++) {
+      if (readU32LE(view, p) !== 0x02014b50) break;
+      const compMethod = readU16LE(view, p + 10);
+      const compSize = readU32LE(view, p + 20);
+      const nameLen = readU16LE(view, p + 28);
+      const extraLen = readU16LE(view, p + 30);
+      const commentLen = readU16LE(view, p + 32);
+      const localOffset = readU32LE(view, p + 42);
+      const name = new TextDecoder('utf-8').decode(bytes.subarray(p + 46, p + 46 + nameLen));
+      entries[name] = { compMethod, compSize, localOffset };
+      p += 46 + nameLen + extraLen + commentLen;
+    }
+    return { view, bytes, entries };
+  }
+
+  async function extractZipEntry(zip, name) {
+    const entry = zip.entries[name];
+    if (!entry) return null;
+    const { view, bytes } = zip;
+    const lp = entry.localOffset;
+    if (readU32LE(view, lp) !== 0x04034b50) throw new Error('Cabeçalho local do ZIP inválido em "' + name + '".');
+    const nameLen = readU16LE(view, lp + 26);
+    const extraLen = readU16LE(view, lp + 28);
+    const dataStart = lp + 30 + nameLen + extraLen;
+    const compressed = bytes.subarray(dataStart, dataStart + entry.compSize);
+    if (entry.compMethod === 0) return compressed;
+    if (entry.compMethod === 8) return await inflateRawBytes(compressed);
+    throw new Error('Método de compressão do .xlsx não suportado (' + entry.compMethod + ').');
+  }
+
+  function xmlDoc(bytes) {
+    if (!bytes) return null;
+    return new DOMParser().parseFromString(new TextDecoder('utf-8').decode(bytes), 'application/xml');
+  }
+
+  function colLettersToIndex(letters) {
+    let n = 0;
+    for (let i = 0; i < letters.length; i++) n = n * 26 + (letters.charCodeAt(i) - 64);
+    return n - 1;
+  }
+
+  async function detectXlsxDateStyles(zip) {
+    const dateSet = new Set();
+    const stylesXml = xmlDoc(await extractZipEntry(zip, 'xl/styles.xml'));
+    if (!stylesXml) return dateSet;
+    const builtinDateIds = new Set([14,15,16,17,18,19,20,21,22,27,30,36,45,46,47,50,57]);
+    const customDateIds = new Set();
+    Array.from(stylesXml.getElementsByTagName('numFmt')).forEach(nf => {
+      const id = parseInt(nf.getAttribute('numFmtId'), 10);
+      const code = (nf.getAttribute('formatCode') || '').replace(/\[[^\]]*\]/g, '');
+      if (/general/i.test(code)) return;
+      if (/[dmyhs]/i.test(code)) customDateIds.add(id);
+    });
+    const cellXfs = stylesXml.getElementsByTagName('cellXfs')[0];
+    if (cellXfs) {
+      Array.from(cellXfs.getElementsByTagName('xf')).forEach((xf, idx) => {
+        const numFmtId = parseInt(xf.getAttribute('numFmtId') || '0', 10);
+        if (builtinDateIds.has(numFmtId) || customDateIds.has(numFmtId)) dateSet.add(idx);
+      });
+    }
+    return dateSet;
+  }
+
+  function excelSerialToDateString(serial) {
+    const ms = Math.round((serial - 25569) * 86400 * 1000);
+    const d = new Date(ms);
+    return `${String(d.getUTCDate()).padStart(2,'0')}/${String(d.getUTCMonth()+1).padStart(2,'0')}/${d.getUTCFullYear()}`;
+  }
+
+  const XLSX_ROW_CAP = 30000;
+
+  async function parseXLSX(buf) {
+    const zip = parseZipEntries(buf);
+    const wbXml = xmlDoc(await extractZipEntry(zip, 'xl/workbook.xml'));
+    if (!wbXml) throw new Error('xl/workbook.xml não encontrado — isso não parece um .xlsx válido.');
+    const relsXml = xmlDoc(await extractZipEntry(zip, 'xl/_rels/workbook.xml.rels'));
+    const sharedStringsXml = xmlDoc(await extractZipEntry(zip, 'xl/sharedStrings.xml'));
+    const sharedStrings = sharedStringsXml
+      ? Array.from(sharedStringsXml.getElementsByTagName('si')).map(si => Array.from(si.getElementsByTagName('t')).map(t => t.textContent).join(''))
+      : [];
+
+    const relMap = {};
+    if (relsXml) {
+      Array.from(relsXml.getElementsByTagName('Relationship')).forEach(r => { relMap[r.getAttribute('Id')] = r.getAttribute('Target'); });
+    }
+    const sheetEls = Array.from(wbXml.getElementsByTagName('sheet'));
+    if (!sheetEls.length) throw new Error('Nenhuma planilha encontrada dentro do arquivo.');
+    const firstSheet = sheetEls[0];
+    const rId = firstSheet.getAttribute('r:id')
+      || firstSheet.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id');
+    let target = (relMap[rId] || 'worksheets/sheet1.xml').replace(/^\//, '');
+    const sheetPath = target.startsWith('xl/') ? target : 'xl/' + target;
+
+    const sheetXml = xmlDoc(await extractZipEntry(zip, sheetPath));
+    if (!sheetXml) throw new Error('Não consegui ler a primeira aba da planilha.');
+    const dateStyles = await detectXlsxDateStyles(zip);
+
+    const grid = [];
+    Array.from(sheetXml.getElementsByTagName('row')).forEach(rowEl => {
+      const rowIdx = parseInt(rowEl.getAttribute('r'), 10) - 1;
+      const rowArr = grid[rowIdx] || (grid[rowIdx] = []);
+      Array.from(rowEl.getElementsByTagName('c')).forEach(c => {
+        const ref = c.getAttribute('r') || '';
+        const colIdx = colLettersToIndex(ref.replace(/\d+/g, '') || 'A');
+        const type = c.getAttribute('t');
+        const styleIdx = c.getAttribute('s') != null ? parseInt(c.getAttribute('s'), 10) : null;
+        let val = '';
+        if (type === 's') {
+          const vEl = c.getElementsByTagName('v')[0];
+          val = vEl ? (sharedStrings[parseInt(vEl.textContent, 10)] || '') : '';
+        } else if (type === 'inlineStr') {
+          const isEl = c.getElementsByTagName('is')[0];
+          val = isEl ? Array.from(isEl.getElementsByTagName('t')).map(t => t.textContent).join('') : '';
+        } else {
+          const vEl = c.getElementsByTagName('v')[0];
+          let raw = vEl ? vEl.textContent : '';
+          const isNumericType = !type || type === 'n'; // "n" (número) é escrito explicitamente por alguns geradores de xlsx
+          if (isNumericType && raw !== '' && styleIdx != null && dateStyles.has(styleIdx)) {
+            const serial = parseFloat(raw);
+            if (!isNaN(serial)) raw = excelSerialToDateString(serial);
+          }
+          val = raw;
+        }
+        rowArr[colIdx] = val;
+      });
+    });
+
+    const headerRow = grid[0] || [];
+    const header = headerRow.map((h, i) => (h != null && String(h).trim() !== '') ? String(h).trim() : `Coluna ${i+1}`);
+    if (!header.length) throw new Error('A primeira linha da planilha está vazia — ela precisa ter os nomes das colunas.');
+    let dataRows = grid.slice(1).filter(r => r && r.some(v => v != null && String(v).trim() !== ''));
+    if (dataRows.length > XLSX_ROW_CAP) dataRows = dataRows.slice(0, XLSX_ROW_CAP);
+    const rows = dataRows.map(r => {
+      const obj = {};
+      header.forEach((h, i) => { obj[h] = r[i] != null ? String(r[i]) : ''; });
+      return obj;
+    });
+    return { header, rows };
+  }
+
+  /* file input + drag/drop */
+  const fileInput = document.getElementById('file-input');
+  const dropzone = document.getElementById('dropzone');
+  const fileNameEl = document.getElementById('file-name');
+
+  function handleFile(file) {
+    if (!file) return;
+    fileNameEl.textContent = file.name;
+    const isXlsx = /\.xlsx$/i.test(file.name) || file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+    if (isXlsx) {
+      fileNameEl.textContent = file.name + ' — lendo planilha…';
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const { header, rows } = await parseXLSX(e.target.result);
+          fileNameEl.textContent = file.name;
+          loadDataset(header, rows);
+        } catch (err) {
+          fileNameEl.textContent = file.name + ' — ' + (err && err.message ? err.message : 'não foi possível ler este .xlsx.');
+        }
+      };
+      reader.onerror = () => { fileNameEl.textContent = file.name + ' — não foi possível ler o arquivo.'; };
+      reader.readAsArrayBuffer(file);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const { header, rows } = parseCSV(e.target.result);
+      if (!header.length) { fileNameEl.textContent = file.name + ' — não foi possível ler este arquivo como CSV.'; return; }
+      loadDataset(header, rows);
+    };
+    reader.readAsText(file, 'utf-8');
+  }
+  fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+  ['dragover','dragenter'].forEach(evt => dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(evt => dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.remove('drag'); }));
+  dropzone.addEventListener('drop', (e) => { const f = e.dataTransfer.files[0]; if (f) handleFile(f); });
+
+  document.getElementById('btn-demo').addEventListener('click', () => {
+    const header = ['data','regiao','canal','investimento','conversoes'];
+    const regioes = ['Sudeste','Sul','Nordeste','Norte','Centro-Oeste'];
+    const canais = ['Busca paga','Social','E-mail','Indicação'];
+    const rows = [];
+    for (let m = 0; m < 6; m++) {
+      const date = new Date(2026, m, 1).toISOString().slice(0,10);
+      regioes.forEach(reg => {
+        canais.forEach(canal => {
+          const inv = Math.round(500 + Math.random()*4000);
+          const conv = Math.round(inv/ (20+Math.random()*20));
+          rows.push({ data: date, regiao: reg, canal: canal, investimento: String(inv), conversoes: String(conv) });
+        });
+      });
+    }
+    fileNameEl.textContent = 'dados_de_exemplo.csv (gerado localmente)';
+    loadDataset(header, rows);
+  });
+
+  document.getElementById('link-guia').addEventListener('click', (e) => {
+    e.preventDefault();
+    alert('Abra o artifact "Storytelling com Dados" publicado nesta mesma conversa para ver o guia completo com as seis lições.');
+  });
+
+  /* ---------------- TAB C: storytelling a partir de um gráfico pronto ---------------- */
+
+  let imageObjectUrl = null;
+  const fileInputC = document.getElementById('file-input-c');
+  const dropzoneC = document.getElementById('dropzone-c');
+  const imagePreviewWrap = document.getElementById('image-preview-wrap');
+  const imagePreview = document.getElementById('image-preview');
+  const dropzoneCText = document.getElementById('dropzone-c-text');
+
+  function setImageC(file) {
+    if (imageObjectUrl) { URL.revokeObjectURL(imageObjectUrl); imageObjectUrl = null; }
+    if (!file) {
+      imagePreviewWrap.style.display = 'none';
+      dropzoneCText.innerHTML = '<b>Clique para enviar</b> ou arraste a imagem do gráfico aqui (opcional)';
+      return;
+    }
+    imageObjectUrl = URL.createObjectURL(file);
+    imagePreview.src = imageObjectUrl;
+    imagePreviewWrap.style.display = 'block';
+    dropzoneCText.innerHTML = `<b>Imagem enviada:</b> ${escXml(file.name)} — clique pra trocar`;
+  }
+  fileInputC.addEventListener('change', (e) => setImageC(e.target.files[0]));
+  ['dragover','dragenter'].forEach(evt => dropzoneC.addEventListener(evt, (e) => { e.preventDefault(); dropzoneC.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(evt => dropzoneC.addEventListener(evt, (e) => { e.preventDefault(); dropzoneC.classList.remove('drag'); }));
+  dropzoneC.addEventListener('drop', (e) => {
+    const f = e.dataTransfer.files[0];
+    if (f && f.type.startsWith('image/')) { fileInputC.files = e.dataTransfer.files; setImageC(f); }
+  });
+  document.getElementById('btn-clear-image').addEventListener('click', () => { fileInputC.value = ''; setImageC(null); });
+
+  document.getElementById('btn-gerar-roteiro').addEventListener('click', () => {
+    const assunto = document.getElementById('sc-assunto').value.trim();
+    const tipo = document.getElementById('sc-tipo').value;
+    const publico = document.getElementById('sc-publico').value.trim();
+    const observa = document.getElementById('sc-observa').value.trim();
+
+    const intro = assunto
+      ? `Comece situando o assunto em uma frase: "${assunto}"${publico ? ` — e diga logo pra que serve isso pra ${publico}` : ''}.`
+      : 'Comece situando em uma frase do que se trata o gráfico e por que isso importa pra quem está vendo.';
+    const meio = observa
+      ? `Depois, mostre o gráfico e aponte direto o que você já notou: "${observa}". Isso poupa a audiência de "decifrar" o gráfico sozinha.`
+      : 'Depois, mostre o gráfico e aponte direto o ponto principal — não deixe a audiência "decifrar" sozinha, guie o olhar pro que importa.';
+    const fim = publico
+      ? `Termine dizendo o que ${publico} deve fazer com essa informação — uma decisão, uma pergunta em aberto, ou um próximo passo.`
+      : 'Termine com uma conclusão clara: o que fazer, decidir ou observar a partir disso — não deixe o gráfico "solto" sem um fechamento.';
+
+    const resultEl = document.getElementById('result-c');
+    resultEl.innerHTML = '';
+
+    const story = document.createElement('div');
+    story.className = 'story-card';
+    story.innerHTML = `
+      <div class="section-label">Roteiro sugerido — Lição 6 do livro (conte uma história)</div>
+      <h3>Como apresentar este gráfico</h3>
+      <ol class="story-steps">
+        <li><div><b>Contexto</b><br><span>${escXml(intro)}</span></div></li>
+        <li><div><b>O que os dados mostram</b><br><span>${escXml(meio)}</span></div></li>
+        <li><div><b>Conclusão</b><br><span>${escXml(fim)}</span></div></li>
+      </ol>
+    `;
+    resultEl.appendChild(story);
+
+    const card = document.createElement('div');
+    card.className = 'viz-card';
+    const questions = getQuestions(tipo);
+    card.innerHTML = `
+      <h4 class="viz-card-title">Perguntas pra achar o insight de primeira</h4>
+      <p class="note" style="margin:0 0 .7rem">Como não lemos a imagem automaticamente, use estas perguntas olhando pro seu gráfico:</p>
+      <ul class="insight-list">${questions.map(q=>`<li>${escXml(q)}</li>`).join('')}</ul>
+    `;
+    resultEl.appendChild(card);
+  });
+
+})();
+</script>
+
+<script src="/vizmap-config.js"></script>
+<script src="/vendor/supabase.js"></script>
+<script>
+(function() {
+  "use strict";
+
+  const SUPA_URL = window.VIZMAP_SUPABASE_URL;
+  const SUPA_KEY = window.VIZMAP_SUPABASE_ANON_KEY;
+  const configured = !!SUPA_URL && !SUPA_URL.includes('COLE_AQUI');
+  const authStatus = document.getElementById('auth-status');
+
+  function renderUnavailable(msg) {
+    const span = document.createElement('span');
+    span.className = 'auth-unconfigured';
+    span.title = msg;
+    span.textContent = 'Login indisponível';
+    authStatus.replaceChildren(span);
+  }
+
+  if (!configured) {
+    renderUnavailable('Configure public/vizmap-config.js com os dados do seu projeto Supabase.');
+  } else if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+    renderUnavailable('Não foi possível carregar a biblioteca de login (public/vendor/supabase.js).');
+  } else {
+    let supabaseClient;
+    try {
+      supabaseClient = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+    } catch (err) {
+      renderUnavailable('Não foi possível iniciar o login: ' + (err && err.message ? err.message : err));
+      return;
+    }
+    const supabase = supabaseClient;
+
+    const backdrop = document.getElementById('auth-modal-backdrop');
+    const modalTitle = document.getElementById('auth-modal-title');
+    const form = document.getElementById('auth-form');
+    const emailInput = document.getElementById('auth-email');
+    const passwordInput = document.getElementById('auth-password');
+    const errorEl = document.getElementById('auth-error');
+    const submitBtn = document.getElementById('auth-submit');
+    const toggleBtn = document.getElementById('auth-toggle-mode');
+    const toggleText = document.querySelector('.auth-toggle');
+    let mode = 'signin';
+
+    function openModal() {
+      backdrop.style.display = 'flex';
+      errorEl.style.display = 'none';
+      errorEl.style.color = '#c0392b';
+      form.reset();
+    }
+    function closeModal() { backdrop.style.display = 'none'; }
+    function setMode(m) {
+      mode = m;
+      modalTitle.textContent = m === 'signin' ? 'Entrar' : 'Criar conta';
+      submitBtn.textContent = m === 'signin' ? 'Entrar' : 'Criar conta';
+      toggleBtn.textContent = m === 'signin' ? 'Criar conta' : 'Entrar';
+      toggleText.firstChild.textContent = m === 'signin' ? 'Não tem conta? ' : 'Já tem conta? ';
+    }
+
+    document.getElementById('auth-modal-close').addEventListener('click', closeModal);
+    backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeModal(); });
+    toggleBtn.addEventListener('click', () => setMode(mode === 'signin' ? 'signup' : 'signin'));
+
+    document.getElementById('btn-google').addEventListener('click', async () => {
+      await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorEl.style.display = 'none';
+      submitBtn.disabled = true;
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      const { error } = mode === 'signin'
+        ? await supabase.auth.signInWithPassword({ email, password })
+        : await supabase.auth.signUp({ email, password });
+      submitBtn.disabled = false;
+      if (error) {
+        errorEl.style.color = '#c0392b';
+        errorEl.textContent = error.message;
+        errorEl.style.display = 'block';
+        return;
+      }
+      if (mode === 'signup') {
+        errorEl.style.color = 'var(--good)';
+        errorEl.textContent = 'Conta criada! Se a confirmação por e-mail estiver ativada no projeto, confira sua caixa de entrada.';
+        errorEl.style.display = 'block';
+        return;
+      }
+      closeModal();
+    });
+
+    function renderAuthStatus(session) {
+      authStatus.replaceChildren();
+      if (session && session.user) {
+        const span = document.createElement('span');
+        span.className = 'auth-user';
+        span.textContent = session.user.email || 'conta conectada';
+        const btn = document.createElement('button');
+        btn.className = 'btn secondary tiny';
+        btn.type = 'button';
+        btn.textContent = 'Sair';
+        btn.addEventListener('click', () => supabase.auth.signOut());
+        authStatus.appendChild(span);
+        authStatus.appendChild(btn);
+      } else {
+        const btn = document.createElement('button');
+        btn.className = 'btn secondary tiny';
+        btn.type = 'button';
+        btn.textContent = 'Entrar';
+        btn.addEventListener('click', openModal);
+        authStatus.appendChild(btn);
+      }
+    }
+
+    supabase.auth.getSession().then(({ data }) => renderAuthStatus(data.session));
+    supabase.auth.onAuthStateChange((_event, session) => renderAuthStatus(session));
+  }
+})();
+</script>
