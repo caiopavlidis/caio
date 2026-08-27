@@ -274,6 +274,30 @@
   footer.page-footer { margin-top:3.5rem; font-size:.82rem; color:var(--grey); text-align:center; }
   a.back-link { color:var(--accent); text-decoration:none; font-weight:600; }
   a.back-link:hover { text-decoration:underline; }
+
+  /* Dashboard builder (page 3) */
+  .dash-grid { display:grid; grid-template-columns: repeat(6, 1fr); gap:1.1rem; align-items:start; }
+  @media (max-width:700px) { .dash-grid { grid-template-columns: repeat(2, 1fr); } }
+  .dash-widget { background:var(--surface); border-radius:14px; padding:1.1rem 1.2rem 1.2rem; box-shadow:var(--shadow); grid-column: span 3; }
+  .dash-widget.size-sm { grid-column: span 2; }
+  .dash-widget.size-md { grid-column: span 3; }
+  .dash-widget.size-lg { grid-column: span 6; }
+  @media (max-width:700px) { .dash-widget, .dash-widget.size-sm, .dash-widget.size-md, .dash-widget.size-lg { grid-column: span 2; } }
+  .dash-widget-head { display:flex; justify-content:space-between; align-items:flex-start; gap:.8rem; margin-bottom:.6rem; }
+  .dash-widget-head h4 { font-family:var(--font-display); font-weight:600; font-size:1.02rem; margin:0; }
+  .dash-widget-controls { display:flex; gap:.35rem; flex-shrink:0; align-items:center; }
+  .dash-widget-controls select { width:auto; font-size:.72rem; padding:.25rem .4rem; }
+  .dash-filter-actions { display:flex; gap:.6rem; margin-top:.8rem; }
+
+  @media print {
+    .site-header, .page-footer, .eyebrow, .page-title, .subtitle,
+    #dash-locked, #dash-unavailable, #dash-app > .card:not(#dash-grid-card) { display:none !important; }
+    #dash-grid-card { box-shadow:none !important; padding:0 !important; }
+    #dash-grid-card .page-header .btn { display:none !important; }
+    .dash-widget { break-inside: avoid; box-shadow:none !important; border:1px solid var(--grey-line); }
+    .dash-widget-controls { display:none !important; }
+    body { background:#fff; }
+  }
 </style>
 
 <header class="site-header">
@@ -283,6 +307,7 @@
       <nav class="site-nav" aria-label="Páginas do site">
         <button class="site-nav-link active" id="pager-1" type="button">Sobre a plataforma</button>
         <button class="site-nav-link" id="pager-2" type="button">Ferramentas</button>
+        <button class="site-nav-link" id="pager-3" type="button">Meus Dashboards</button>
       </nav>
       <div class="auth-status" id="auth-status"></div>
     </div>
@@ -472,6 +497,78 @@
     <!-- /tool-detail -->
   </section>
   <!-- /page-2 -->
+
+  <section class="page-view" id="page-3">
+    <div class="eyebrow">EasyViz</div>
+    <h2 class="page-title">Meus Dashboards</h2>
+    <p class="subtitle" style="margin-bottom:1.8rem">Envie seus dados, escolha os gráficos, monte o layout do seu jeito e exporte como PDF.</p>
+
+    <div id="dash-locked" class="card" style="display:none">
+      <div class="section-label">Login necessário</div>
+      <p class="note" style="margin:0 0 1rem">Pra criar um dashboard, você precisa estar logado.</p>
+      <button class="btn" id="btn-dash-login" type="button">Entrar</button>
+    </div>
+
+    <div id="dash-unavailable" class="card" style="display:none">
+      <div class="section-label">Login não configurado</div>
+      <p class="note" style="margin:0">Esta funcionalidade depende do login (Supabase), que ainda não foi configurado neste site.</p>
+    </div>
+
+    <div id="dash-app" style="display:none">
+      <div class="card">
+        <div class="section-label">1. Enviar dados</div>
+        <label class="dropzone" id="dash-dropzone" for="dash-file-input">
+          <div id="dash-dropzone-text"><b>Clique para enviar</b> ou arraste um arquivo .csv ou .xlsx aqui</div>
+          <input type="file" id="dash-file-input" accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+        </label>
+        <div class="upload-actions">
+          <button class="btn secondary" id="dash-btn-demo" type="button">Usar dados de exemplo</button>
+          <button class="btn secondary" id="dash-btn-clear" type="button" style="display:none">Trocar dados</button>
+          <span class="file-name" id="dash-file-name"></span>
+        </div>
+      </div>
+
+      <div class="card" id="dash-builder-card" style="display:none">
+        <div class="section-label">2. Adicionar visualização</div>
+        <div class="field">
+          <label for="dash-sel-x">Eixo (categoria, tempo ou número)</label>
+          <select id="dash-sel-x"></select>
+        </div>
+        <div class="field">
+          <label for="dash-sel-y">Valor a visualizar</label>
+          <select id="dash-sel-y"></select>
+        </div>
+        <button class="btn secondary" id="dash-btn-preview" type="button">Ver opções de gráfico</button>
+
+        <div id="dash-chart-picker" style="display:none; margin-top:1rem">
+          <div class="option-pills" id="dash-chart-options"></div>
+          <div class="chart-box" id="dash-chart-preview"></div>
+          <button class="btn" id="dash-btn-add" type="button" style="margin-top:1rem">+ Adicionar ao dashboard</button>
+        </div>
+      </div>
+
+      <div class="card" id="dash-filter-card" style="display:none">
+        <div class="section-label">Filtro (aplica a todos os gráficos)</div>
+        <div class="field">
+          <label for="dash-filter-col">Filtrar por coluna</label>
+          <select id="dash-filter-col"></select>
+        </div>
+        <div id="dash-filter-body"></div>
+      </div>
+
+      <div class="card" id="dash-grid-card" style="display:none">
+        <div class="page-header">
+          <h3>Seu dashboard</h3>
+          <div style="display:flex; gap:.6rem; flex-wrap:wrap">
+            <button class="btn secondary tiny" id="dash-btn-save" type="button" title="Salvar no servidor ainda não está disponível">Salvar (em breve)</button>
+            <button class="btn tiny" id="dash-btn-export" type="button">Exportar como PDF</button>
+          </div>
+        </div>
+        <div class="dash-grid" id="dash-grid"></div>
+      </div>
+    </div>
+  </section>
+  <!-- /page-3 -->
 
   <footer class="page-footer">
     Companheira do guia <a class="back-link" href="#" id="link-guia">Storytelling com Dados</a> — mesma síntese aplicada, agora interativa.
@@ -1223,9 +1320,9 @@
 
   /* ---------------- Pagination (page 1: plataforma / page 2: ferramentas) ---------------- */
 
-  const PAGE_IDS = ['1', '2'];
-  const pagerSteps = { '1': document.getElementById('pager-1'), '2': document.getElementById('pager-2') };
-  const pageViews = { '1': document.getElementById('page-1'), '2': document.getElementById('page-2') };
+  const PAGE_IDS = ['1', '2', '3'];
+  const pagerSteps = { '1': document.getElementById('pager-1'), '2': document.getElementById('pager-2'), '3': document.getElementById('pager-3') };
+  const pageViews = { '1': document.getElementById('page-1'), '2': document.getElementById('page-2'), '3': document.getElementById('page-3') };
 
   function showPage(id) {
     PAGE_IDS.forEach(pid => {
@@ -1234,6 +1331,7 @@
       pageViews[pid].classList.toggle('active', isActive);
     });
     if (id === '2') closeToolDetail();
+    if (id === '3' && typeof renderDashGate === 'function') renderDashGate();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   PAGE_IDS.forEach(id => pagerSteps[id].addEventListener('click', () => showPage(id)));
@@ -1531,9 +1629,10 @@
     }
 
     if (key === 'bar') {
-      let items = groupSum(dataset.rows, effX, effY);
+      const rowsSnap = dataset.rows;
+      let items = groupSum(rowsSnap, effX, effY);
       const distinctCount = items.length;
-      const looksMisdetected = distinctCount > 20 && distinctCount > dataset.rows.length * 0.6;
+      const looksMisdetected = distinctCount > 20 && distinctCount > rowsSnap.length * 0.6;
       let note = null;
       if (items.length > 12) {
         const rest = items.slice(11).reduce((a,d)=>a+d.value,0);
@@ -1556,7 +1655,7 @@
           why: [ 'Se as linhas do seu arquivo já seguem uma sequência que importa — por exemplo, uma coluna de data que não foi reconhecida automaticamente — essa visão mostra a evolução na ordem em que elas aparecem.' ],
           avoid: [ 'Se a ordem das linhas não significar nada (não é cronológica nem sequencial), essa visão pode enganar — nesse caso, use as barras ou colunas.' ],
           render: (el) => {
-            let raw = dataset.rows.map(r => ({ label: (r[effX] || '').trim() || '—', value: tryParseNumber(r[effY]) })).filter(d => d.value != null);
+            let raw = rowsSnap.map(r => ({ label: (r[effX] || '').trim() || '—', value: tryParseNumber(r[effY]) })).filter(d => d.value != null);
             const rStep = Math.max(1, Math.ceil(raw.length / 60));
             raw = raw.filter((_, i) => i % rStep === 0);
             if (raw.length < 2) el.innerHTML = '<p class="result-empty">Poucos pontos válidos pra desenhar a linha.</p>';
@@ -2025,6 +2124,348 @@
     resultEl.appendChild(card);
   });
 
+  /* ---------------- Meus Dashboards (page 3) ---------------- */
+
+  function cardForPairOn(ds, xCol, yCol) {
+    const saved = dataset;
+    dataset = ds;
+    try { return cardForPair(xCol, yCol); }
+    finally { dataset = saved; }
+  }
+
+  let dashDataset = { header: [], rows: [], types: {} };
+  let dashFilter = { column: '', kind: null, values: null, from: null, to: null };
+  let dashWidgets = [];
+  let dashWidgetSeq = 0;
+  let dashPreview = null;
+  let dashAuthState = { session: null, unavailable: false, ready: false };
+
+  const dashLocked = document.getElementById('dash-locked');
+  const dashUnavailable = document.getElementById('dash-unavailable');
+  const dashApp = document.getElementById('dash-app');
+
+  document.getElementById('btn-dash-login').addEventListener('click', () => { if (window.easyvizOpenLogin) window.easyvizOpenLogin(); });
+
+  document.addEventListener('easyviz:auth', (e) => {
+    dashAuthState = { session: e.detail.session, unavailable: e.detail.unavailable, ready: true };
+    if (pageViews['3'].classList.contains('active')) renderDashGate();
+  });
+
+  function renderDashGate() {
+    dashLocked.style.display = 'none';
+    dashUnavailable.style.display = 'none';
+    dashApp.style.display = 'none';
+    if (!dashAuthState.ready) return;
+    if (dashAuthState.unavailable) { dashUnavailable.style.display = 'block'; return; }
+    if (!dashAuthState.session) { dashLocked.style.display = 'block'; return; }
+    dashApp.style.display = 'block';
+  }
+
+  function currentDashRows() { return applyDashFilter(dashDataset.rows); }
+  function currentDashDataset() { return { header: dashDataset.header, types: dashDataset.types, rows: currentDashRows() }; }
+
+  function loadDashDataset(header, rows) {
+    dashDataset = { header, rows, types: {} };
+    header.forEach(col => dashDataset.types[col] = detectType(rows, col));
+    dashWidgets = [];
+    dashFilter = { column: '', kind: null, values: null, from: null, to: null };
+    document.getElementById('dash-builder-card').style.display = 'block';
+    document.getElementById('dash-filter-card').style.display = 'block';
+    document.getElementById('dash-grid-card').style.display = 'block';
+    document.getElementById('dash-btn-clear').style.display = 'inline-flex';
+    document.getElementById('dash-chart-picker').style.display = 'none';
+    dashPreview = null;
+    populateDashXY();
+    populateDashFilterCol();
+    renderDashGrid();
+  }
+
+  const dashFileInput = document.getElementById('dash-file-input');
+  const dashDropzone = document.getElementById('dash-dropzone');
+  const dashFileNameEl = document.getElementById('dash-file-name');
+
+  function handleDashFile(file) {
+    if (!file) return;
+    dashFileNameEl.textContent = file.name;
+    const isXlsx = /\.xlsx$/i.test(file.name) || file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    if (isXlsx) {
+      dashFileNameEl.textContent = file.name + ' — lendo planilha…';
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const { header, rows } = await parseXLSX(e.target.result);
+          dashFileNameEl.textContent = file.name;
+          loadDashDataset(header, rows);
+        } catch (err) {
+          dashFileNameEl.textContent = file.name + ' — ' + (err && err.message ? err.message : 'não foi possível ler este .xlsx.');
+        }
+      };
+      reader.onerror = () => { dashFileNameEl.textContent = file.name + ' — não foi possível ler o arquivo.'; };
+      reader.readAsArrayBuffer(file);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const { header, rows } = parseCSV(e.target.result);
+      if (!header.length) { dashFileNameEl.textContent = file.name + ' — não foi possível ler este arquivo como CSV.'; return; }
+      loadDashDataset(header, rows);
+    };
+    reader.readAsText(file, 'utf-8');
+  }
+  dashFileInput.addEventListener('change', (e) => handleDashFile(e.target.files[0]));
+  ['dragover','dragenter'].forEach(evt => dashDropzone.addEventListener(evt, (e) => { e.preventDefault(); dashDropzone.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(evt => dashDropzone.addEventListener(evt, (e) => { e.preventDefault(); dashDropzone.classList.remove('drag'); }));
+  dashDropzone.addEventListener('drop', (e) => { const f = e.dataTransfer.files[0]; if (f) handleDashFile(f); });
+
+  document.getElementById('dash-btn-demo').addEventListener('click', () => {
+    const header = ['data','regiao','canal','investimento','conversoes'];
+    const regioes = ['Sudeste','Sul','Nordeste','Norte','Centro-Oeste'];
+    const canais = ['Busca paga','Social','E-mail','Indicação'];
+    const rows = [];
+    for (let m = 0; m < 6; m++) {
+      const date = new Date(2026, m, 1).toISOString().slice(0,10);
+      regioes.forEach(reg => {
+        canais.forEach(canal => {
+          const inv = Math.round(500 + Math.random()*4000);
+          const conv = Math.round(inv/ (20+Math.random()*20));
+          rows.push({ data: date, regiao: reg, canal: canal, investimento: String(inv), conversoes: String(conv) });
+        });
+      });
+    }
+    dashFileNameEl.textContent = 'dados_de_exemplo.csv (gerado localmente)';
+    loadDashDataset(header, rows);
+  });
+
+  document.getElementById('dash-btn-clear').addEventListener('click', () => {
+    dashDataset = { header: [], rows: [], types: {} };
+    dashWidgets = [];
+    dashPreview = null;
+    document.getElementById('dash-builder-card').style.display = 'none';
+    document.getElementById('dash-filter-card').style.display = 'none';
+    document.getElementById('dash-grid-card').style.display = 'none';
+    document.getElementById('dash-btn-clear').style.display = 'none';
+    dashFileInput.value = '';
+    dashFileNameEl.textContent = '';
+  });
+
+  function populateDashXY() {
+    const selX = document.getElementById('dash-sel-x');
+    selX.innerHTML = dashDataset.header.map(c => `<option value="${escAttr(c)}">${escXml(c)} (${dashDataset.types[c]})</option>`).join('');
+    selX.onchange = populateDashY;
+    populateDashY();
+  }
+  function populateDashY() {
+    const xCol = document.getElementById('dash-sel-x').value;
+    const selY = document.getElementById('dash-sel-y');
+    const candidates = dashDataset.header.filter(c => c !== xCol);
+    selY.innerHTML = candidates.map(c => `<option value="${escAttr(c)}">${escXml(c)} (${dashDataset.types[c]})</option>`).join('');
+  }
+
+  document.getElementById('dash-btn-preview').addEventListener('click', () => {
+    const xCol = document.getElementById('dash-sel-x').value;
+    const yCol = document.getElementById('dash-sel-y').value;
+    if (!xCol || !yCol) return;
+    const rec = cardForPairOn(currentDashDataset(), xCol, yCol);
+    dashPreview = { rec, xCol, yCol, optionIndex: 0 };
+    renderDashPreview();
+  });
+
+  function renderDashPreview() {
+    const picker = document.getElementById('dash-chart-picker');
+    const pillsEl = document.getElementById('dash-chart-options');
+    const box = document.getElementById('dash-chart-preview');
+    picker.style.display = 'block';
+    const { rec, optionIndex } = dashPreview;
+    pillsEl.innerHTML = '';
+    rec.options.forEach((opt, i) => {
+      const pill = document.createElement('button');
+      pill.type = 'button';
+      pill.className = 'option-pill' + (i === optionIndex ? ' active' : '');
+      pill.textContent = opt.tag;
+      pill.addEventListener('click', () => { dashPreview.optionIndex = i; renderDashPreview(); });
+      pillsEl.appendChild(pill);
+    });
+    box.innerHTML = '';
+    rec.options[optionIndex].render(box);
+  }
+
+  document.getElementById('dash-btn-add').addEventListener('click', () => {
+    if (!dashPreview) return;
+    dashWidgetSeq++;
+    dashWidgets.push({
+      id: dashWidgetSeq,
+      xCol: dashPreview.xCol,
+      yCol: dashPreview.yCol,
+      tag: dashPreview.rec.options[dashPreview.optionIndex].tag,
+      size: 'md',
+    });
+    renderDashGrid();
+  });
+
+  function populateDashFilterCol() {
+    const sel = document.getElementById('dash-filter-col');
+    sel.innerHTML = '<option value="">Sem filtro</option>' + dashDataset.header.map(c => `<option value="${escAttr(c)}">${escXml(c)}</option>`).join('');
+    sel.value = dashFilter.column || '';
+    sel.onchange = () => {
+      dashFilter = { column: sel.value, kind: sel.value ? dashDataset.types[sel.value] : null, values: null, from: null, to: null };
+      renderDashFilterBody();
+    };
+    renderDashFilterBody();
+  }
+
+  function renderDashFilterBody() {
+    const body = document.getElementById('dash-filter-body');
+    body.innerHTML = '';
+    if (!dashFilter.column) return;
+    const col = dashFilter.column;
+    const type = dashFilter.kind;
+    function bindClear() {
+      document.getElementById('dash-filter-clear').addEventListener('click', () => {
+        dashFilter = { column: '', kind: null, values: null, from: null, to: null };
+        document.getElementById('dash-filter-col').value = '';
+        renderDashFilterBody();
+        renderDashGrid();
+      });
+    }
+    if (type === 'string') {
+      const distinct = [...new Set(dashDataset.rows.map(r => (r[col]||'').trim()).filter(Boolean))].sort();
+      const wrap = document.createElement('div');
+      wrap.className = 'y-checks';
+      distinct.forEach(v => {
+        const lab = document.createElement('label');
+        lab.className = 'y-check checked';
+        lab.innerHTML = `<input type="checkbox" value="${escAttr(v)}" checked> ${escXml(v)}`;
+        wrap.appendChild(lab);
+        const cb = lab.querySelector('input');
+        cb.addEventListener('change', () => lab.classList.toggle('checked', cb.checked));
+      });
+      body.appendChild(wrap);
+      const actions = document.createElement('div');
+      actions.className = 'dash-filter-actions';
+      actions.innerHTML = `<button class="btn tiny" type="button" id="dash-filter-apply">Aplicar</button><button class="btn tiny secondary" type="button" id="dash-filter-clear">Limpar filtro</button>`;
+      body.appendChild(actions);
+      document.getElementById('dash-filter-apply').addEventListener('click', () => {
+        const checked = Array.from(wrap.querySelectorAll('input:checked')).map(cb => cb.value);
+        dashFilter.values = new Set(checked);
+        renderDashGrid();
+      });
+      bindClear();
+    } else if (type === 'date') {
+      body.innerHTML = `
+        <div class="rf-level">
+          <label class="rf-label">De <input type="date" id="dash-filter-from"></label>
+          <label class="rf-label">Até <input type="date" id="dash-filter-to"></label>
+        </div>
+        <div class="dash-filter-actions">
+          <button class="btn tiny" type="button" id="dash-filter-apply">Aplicar</button>
+          <button class="btn tiny secondary" type="button" id="dash-filter-clear">Limpar filtro</button>
+        </div>`;
+      document.getElementById('dash-filter-apply').addEventListener('click', () => {
+        dashFilter.from = document.getElementById('dash-filter-from').value || null;
+        dashFilter.to = document.getElementById('dash-filter-to').value || null;
+        renderDashGrid();
+      });
+      bindClear();
+    } else {
+      body.innerHTML = `
+        <div class="rf-level">
+          <label class="rf-label">Mín <input type="text" id="dash-filter-min" style="width:100px"></label>
+          <label class="rf-label">Máx <input type="text" id="dash-filter-max" style="width:100px"></label>
+        </div>
+        <div class="dash-filter-actions">
+          <button class="btn tiny" type="button" id="dash-filter-apply">Aplicar</button>
+          <button class="btn tiny secondary" type="button" id="dash-filter-clear">Limpar filtro</button>
+        </div>`;
+      document.getElementById('dash-filter-apply').addEventListener('click', () => {
+        dashFilter.from = tryParseNumber(document.getElementById('dash-filter-min').value);
+        dashFilter.to = tryParseNumber(document.getElementById('dash-filter-max').value);
+        renderDashGrid();
+      });
+      bindClear();
+    }
+  }
+
+  function applyDashFilter(rows) {
+    if (!dashFilter.column) return rows;
+    const col = dashFilter.column;
+    const type = dashFilter.kind;
+    if (type === 'string') {
+      if (!dashFilter.values) return rows;
+      return rows.filter(r => dashFilter.values.has((r[col]||'').trim()));
+    }
+    if (type === 'date') {
+      const from = dashFilter.from ? tryParseDate(dashFilter.from) : null;
+      const to = dashFilter.to ? tryParseDate(dashFilter.to) : null;
+      return rows.filter(r => {
+        const d = tryParseDate(r[col]);
+        if (!d) return false;
+        if (from && d < from) return false;
+        if (to && d > to) return false;
+        return true;
+      });
+    }
+    if (type === 'number') {
+      const min = dashFilter.from, max = dashFilter.to;
+      return rows.filter(r => {
+        const v = tryParseNumber(r[col]);
+        if (v == null) return false;
+        if (min != null && v < min) return false;
+        if (max != null && v > max) return false;
+        return true;
+      });
+    }
+    return rows;
+  }
+
+  function renderDashGrid() {
+    const grid = document.getElementById('dash-grid');
+    grid.innerHTML = '';
+    if (!dashWidgets.length) {
+      grid.innerHTML = '<p class="result-empty">Adicione visualizações acima pra montar seu dashboard.</p>';
+      return;
+    }
+    const ds = currentDashDataset();
+    dashWidgets.forEach((w, idx) => {
+      const rec = cardForPairOn(ds, w.xCol, w.yCol);
+      const opt = rec.options.find(o => o.tag === w.tag) || rec.options[0];
+      const card = document.createElement('div');
+      card.className = 'dash-widget size-' + w.size;
+      const head = document.createElement('div');
+      head.className = 'dash-widget-head';
+      head.innerHTML = `<h4>${escXml(rec.title)}</h4>`;
+      const controls = document.createElement('div');
+      controls.className = 'dash-widget-controls';
+      const sizeSel = document.createElement('select');
+      sizeSel.innerHTML = '<option value="sm">Pequeno</option><option value="md">Médio</option><option value="lg">Grande</option>';
+      sizeSel.value = w.size;
+      sizeSel.addEventListener('change', () => { w.size = sizeSel.value; renderDashGrid(); });
+      const upBtn = document.createElement('button');
+      upBtn.className = 'btn tiny secondary'; upBtn.type = 'button'; upBtn.textContent = '↑'; upBtn.title = 'Mover pra cima';
+      upBtn.disabled = idx === 0;
+      upBtn.addEventListener('click', () => { const t = dashWidgets[idx-1]; dashWidgets[idx-1] = dashWidgets[idx]; dashWidgets[idx] = t; renderDashGrid(); });
+      const downBtn = document.createElement('button');
+      downBtn.className = 'btn tiny secondary'; downBtn.type = 'button'; downBtn.textContent = '↓'; downBtn.title = 'Mover pra baixo';
+      downBtn.disabled = idx === dashWidgets.length - 1;
+      downBtn.addEventListener('click', () => { const t = dashWidgets[idx+1]; dashWidgets[idx+1] = dashWidgets[idx]; dashWidgets[idx] = t; renderDashGrid(); });
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'kr-remove'; removeBtn.type = 'button'; removeBtn.textContent = '×'; removeBtn.title = 'Remover';
+      removeBtn.addEventListener('click', () => { dashWidgets.splice(idx, 1); renderDashGrid(); });
+      controls.appendChild(sizeSel); controls.appendChild(upBtn); controls.appendChild(downBtn); controls.appendChild(removeBtn);
+      head.appendChild(controls);
+      card.appendChild(head);
+      const box = document.createElement('div');
+      box.className = 'chart-box';
+      card.appendChild(box);
+      opt.render(box);
+      grid.appendChild(card);
+    });
+  }
+
+  document.getElementById('dash-btn-export').addEventListener('click', () => { window.print(); });
+  document.getElementById('dash-btn-save').addEventListener('click', () => {
+    alert('Salvar dashboards no servidor ainda não está disponível — em breve!');
+  });
+
 })();
 </script>
 
@@ -2039,12 +2480,17 @@
   const configured = !!SUPA_URL && !SUPA_URL.includes('COLE_AQUI');
   const authStatus = document.getElementById('auth-status');
 
+  function broadcastAuth(session, unavailable) {
+    document.dispatchEvent(new CustomEvent('easyviz:auth', { detail: { session: session || null, unavailable: !!unavailable } }));
+  }
+
   function renderUnavailable(msg) {
     const span = document.createElement('span');
     span.className = 'auth-unconfigured';
     span.title = msg;
     span.textContent = 'Login indisponível';
     authStatus.replaceChildren(span);
+    broadcastAuth(null, true);
   }
 
   if (!configured) {
@@ -2145,7 +2591,10 @@
         btn.addEventListener('click', openModal);
         authStatus.appendChild(btn);
       }
+      broadcastAuth(session, false);
     }
+
+    window.easyvizOpenLogin = openModal;
 
     supabase.auth.getSession().then(({ data }) => renderAuthStatus(data.session));
     supabase.auth.onAuthStateChange((_event, session) => renderAuthStatus(session));
