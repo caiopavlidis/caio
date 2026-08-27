@@ -2248,9 +2248,17 @@
     dashFileNameEl.textContent = '';
   });
 
+  function dashBestXColumn() {
+    const dateCols = dashDataset.header.filter(c => dashDataset.types[c] === 'date');
+    const strCols = dashDataset.header.filter(c => dashDataset.types[c] === 'string');
+    const numCols = dashDataset.header.filter(c => dashDataset.types[c] === 'number');
+    return dateCols[0] || strCols[0] || numCols[0] || dashDataset.header[0];
+  }
+
   function populateDashXY() {
     const selX = document.getElementById('dash-sel-x');
     selX.innerHTML = dashDataset.header.map(c => `<option value="${escAttr(c)}">${escXml(c)} (${dashDataset.types[c]})</option>`).join('');
+    selX.value = dashBestXColumn();
     selX.onchange = populateDashY;
     populateDashY();
   }
@@ -2259,6 +2267,8 @@
     const selY = document.getElementById('dash-sel-y');
     const candidates = dashDataset.header.filter(c => c !== xCol);
     selY.innerHTML = candidates.map(c => `<option value="${escAttr(c)}">${escXml(c)} (${dashDataset.types[c]})</option>`).join('');
+    const numCandidate = candidates.find(c => dashDataset.types[c] === 'number');
+    selY.value = numCandidate || candidates[0];
   }
 
   document.getElementById('dash-btn-preview').addEventListener('click', () => {
@@ -2287,10 +2297,13 @@
     });
     box.innerHTML = '';
     rec.options[optionIndex].render(box);
+    const addBtn = document.getElementById('dash-btn-add');
+    addBtn.disabled = !rec.family;
+    addBtn.title = rec.family ? '' : 'Essas duas colunas não combinam de um jeito direto — escolha outro par.';
   }
 
   document.getElementById('dash-btn-add').addEventListener('click', () => {
-    if (!dashPreview) return;
+    if (!dashPreview || !dashPreview.rec.family) return;
     dashWidgetSeq++;
     dashWidgets.push({
       id: dashWidgetSeq,
