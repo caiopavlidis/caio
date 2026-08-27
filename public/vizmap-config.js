@@ -7,5 +7,5 @@
 //
 // Onde pegar esses valores: painel do Supabase → seu projeto → Project Settings → API.
 
-window.VIZMAP_SUPABASE_URL = "https://rpdiwgjhkmpadcxcfvwj.supabase.co/rest/v1/";
+window.VIZMAP_SUPABASE_URL = "https://rpdiwgjhkmpadcxcfvwj.supabase.co";
 window.VIZMAP_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwZGl3Z2poa21wYWRjeGNmdndqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3NDE5MTYsImV4cCI6MjEwMzMxNzkxNn0.TDXgevo67ZrgN_sZCLJzJLk2omjBa7t1o4GDOQ5Pp5A";
