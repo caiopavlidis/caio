@@ -296,6 +296,7 @@
     <button class="btn google-btn" id="btn-google" type="button">Continuar com Google</button>
     <div class="auth-divider"><span>ou</span></div>
     <form id="auth-form">
+      <div class="field" id="auth-username-field" style="display:none"><label for="auth-username">Nome de usuário</label><input type="text" id="auth-username" maxlength="40"></div>
       <div class="field"><label for="auth-email">E-mail</label><input type="email" id="auth-email" required></div>
       <div class="field"><label for="auth-password">Senha</label><input type="password" id="auth-password" required minlength="6"></div>
       <p class="auth-error" id="auth-error" style="display:none"></p>
@@ -2063,6 +2064,8 @@
     const backdrop = document.getElementById('auth-modal-backdrop');
     const modalTitle = document.getElementById('auth-modal-title');
     const form = document.getElementById('auth-form');
+    const usernameField = document.getElementById('auth-username-field');
+    const usernameInput = document.getElementById('auth-username');
     const emailInput = document.getElementById('auth-email');
     const passwordInput = document.getElementById('auth-password');
     const errorEl = document.getElementById('auth-error');
@@ -2084,6 +2087,7 @@
       submitBtn.textContent = m === 'signin' ? 'Entrar' : 'Criar conta';
       toggleBtn.textContent = m === 'signin' ? 'Criar conta' : 'Entrar';
       toggleText.firstChild.textContent = m === 'signin' ? 'Não tem conta? ' : 'Já tem conta? ';
+      usernameField.style.display = m === 'signup' ? 'block' : 'none';
     }
 
     document.getElementById('auth-modal-close').addEventListener('click', closeModal);
@@ -2100,9 +2104,10 @@
       submitBtn.disabled = true;
       const email = emailInput.value.trim();
       const password = passwordInput.value;
+      const username = usernameInput.value.trim();
       const { error } = mode === 'signin'
         ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({ email, password });
+        : await supabase.auth.signUp({ email, password, options: { data: { username } } });
       submitBtn.disabled = false;
       if (error) {
         errorEl.style.color = '#c0392b';
@@ -2112,7 +2117,7 @@
       }
       if (mode === 'signup') {
         errorEl.style.color = 'var(--good)';
-        errorEl.textContent = 'Conta criada! Se a confirmação por e-mail estiver ativada no projeto, confira sua caixa de entrada.';
+        errorEl.textContent = 'Conta criada com sucesso! Se a confirmação por e-mail estiver ativada no projeto, verifique sua caixa de entrada para concluir o cadastro.';
         errorEl.style.display = 'block';
         return;
       }
@@ -2124,7 +2129,7 @@
       if (session && session.user) {
         const span = document.createElement('span');
         span.className = 'auth-user';
-        span.textContent = session.user.email || 'conta conectada';
+        span.textContent = session.user.user_metadata?.username || session.user.email || 'conta conectada';
         const btn = document.createElement('button');
         btn.className = 'btn secondary tiny';
         btn.type = 'button';
