@@ -288,6 +288,8 @@
   .dash-widget-controls { display:flex; gap:.35rem; flex-shrink:0; align-items:center; }
   .dash-widget-controls select { width:auto; font-size:.72rem; padding:.25rem .4rem; }
   .dash-filter-actions { display:flex; gap:.6rem; margin-top:.8rem; }
+  .dash-widget.dash-slicer { background:var(--accent-soft); border:1px solid var(--accent-soft-line); box-shadow:none; }
+  .dash-slicer-summary { display:none; font-size:.85rem; color:var(--ink-soft); }
 
   @media print {
     .site-header, .page-footer, .eyebrow, .page-title, .subtitle,
@@ -296,6 +298,8 @@
     #dash-grid-card .page-header .btn { display:none !important; }
     .dash-widget { break-inside: avoid; box-shadow:none !important; border:1px solid var(--grey-line); }
     .dash-widget-controls { display:none !important; }
+    .dash-slicer-controls { display:none !important; }
+    .dash-slicer-summary { display:block !important; }
     body { background:#fff; }
   }
 </style>
@@ -548,12 +552,13 @@
       </div>
 
       <div class="card" id="dash-filter-card" style="display:none">
-        <div class="section-label">Filtro (aplica a todos os gráficos)</div>
+        <div class="section-label">3. Adicionar filtro (slicer)</div>
+        <p class="note" style="margin:0 0 .8rem">Um filtro vira um cartão no seu dashboard, junto com os gráficos — aparece também na exportação em PDF, mostrando o que está selecionado.</p>
         <div class="field">
-          <label for="dash-filter-col">Filtrar por coluna</label>
+          <label for="dash-filter-col">Coluna</label>
           <select id="dash-filter-col"></select>
         </div>
-        <div id="dash-filter-body"></div>
+        <button class="btn secondary" id="dash-btn-add-filter" type="button">+ Adicionar filtro ao dashboard</button>
       </div>
 
       <div class="card" id="dash-grid-card" style="display:none">
@@ -2134,8 +2139,7 @@
   }
 
   let dashDataset = { header: [], rows: [], types: {} };
-  let dashFilter = { column: '', kind: null, values: null, from: null, to: null };
-  let dashWidgets = [];
+  let dashWidgets = []; // { kind:'chart', id, xCol, yCol, tag, size } | { kind:'slicer', id, column, colKind, values, from, to, size }
   let dashWidgetSeq = 0;
   let dashPreview = null;
   let dashAuthState = { session: null, unavailable: false, ready: false };
@@ -2161,14 +2165,17 @@
     dashApp.style.display = 'block';
   }
 
-  function currentDashRows() { return applyDashFilter(dashDataset.rows); }
+  function currentDashRows() {
+    let rows = dashDataset.rows;
+    dashWidgets.filter(w => w.kind === 'slicer').forEach(s => { rows = applySlicer(rows, s); });
+    return rows;
+  }
   function currentDashDataset() { return { header: dashDataset.header, types: dashDataset.types, rows: currentDashRows() }; }
 
   function loadDashDataset(header, rows) {
     dashDataset = { header, rows, types: {} };
     header.forEach(col => dashDataset.types[col] = detectType(rows, col));
     dashWidgets = [];
-    dashFilter = { column: '', kind: null, values: null, from: null, to: null };
     document.getElementById('dash-builder-card').style.display = 'block';
     document.getElementById('dash-filter-card').style.display = 'block';
     document.getElementById('dash-grid-card').style.display = 'block';
@@ -2306,6 +2313,7 @@
     if (!dashPreview || !dashPreview.rec.family) return;
     dashWidgetSeq++;
     dashWidgets.push({
+      kind: 'chart',
       id: dashWidgetSeq,
       xCol: dashPreview.xCol,
       yCol: dashPreview.yCol,
@@ -2317,98 +2325,30 @@
 
   function populateDashFilterCol() {
     const sel = document.getElementById('dash-filter-col');
-    sel.innerHTML = '<option value="">Sem filtro</option>' + dashDataset.header.map(c => `<option value="${escAttr(c)}">${escXml(c)}</option>`).join('');
-    sel.value = dashFilter.column || '';
-    sel.onchange = () => {
-      dashFilter = { column: sel.value, kind: sel.value ? dashDataset.types[sel.value] : null, values: null, from: null, to: null };
-      renderDashFilterBody();
-    };
-    renderDashFilterBody();
+    sel.innerHTML = dashDataset.header.map(c => `<option value="${escAttr(c)}">${escXml(c)}</option>`).join('');
   }
 
-  function renderDashFilterBody() {
-    const body = document.getElementById('dash-filter-body');
-    body.innerHTML = '';
-    if (!dashFilter.column) return;
-    const col = dashFilter.column;
-    const type = dashFilter.kind;
-    function bindClear() {
-      document.getElementById('dash-filter-clear').addEventListener('click', () => {
-        dashFilter = { column: '', kind: null, values: null, from: null, to: null };
-        document.getElementById('dash-filter-col').value = '';
-        renderDashFilterBody();
-        renderDashGrid();
-      });
+  document.getElementById('dash-btn-add-filter').addEventListener('click', () => {
+    const col = document.getElementById('dash-filter-col').value;
+    if (!col) return;
+    if (dashWidgets.some(w => w.kind === 'slicer' && w.column === col)) {
+      alert('Já existe um filtro pra essa coluna no dashboard.');
+      return;
     }
-    if (type === 'string') {
-      const distinct = [...new Set(dashDataset.rows.map(r => (r[col]||'').trim()).filter(Boolean))].sort();
-      const wrap = document.createElement('div');
-      wrap.className = 'y-checks';
-      distinct.forEach(v => {
-        const lab = document.createElement('label');
-        lab.className = 'y-check checked';
-        lab.innerHTML = `<input type="checkbox" value="${escAttr(v)}" checked> ${escXml(v)}`;
-        wrap.appendChild(lab);
-        const cb = lab.querySelector('input');
-        cb.addEventListener('change', () => lab.classList.toggle('checked', cb.checked));
-      });
-      body.appendChild(wrap);
-      const actions = document.createElement('div');
-      actions.className = 'dash-filter-actions';
-      actions.innerHTML = `<button class="btn tiny" type="button" id="dash-filter-apply">Aplicar</button><button class="btn tiny secondary" type="button" id="dash-filter-clear">Limpar filtro</button>`;
-      body.appendChild(actions);
-      document.getElementById('dash-filter-apply').addEventListener('click', () => {
-        const checked = Array.from(wrap.querySelectorAll('input:checked')).map(cb => cb.value);
-        dashFilter.values = new Set(checked);
-        renderDashGrid();
-      });
-      bindClear();
-    } else if (type === 'date') {
-      body.innerHTML = `
-        <div class="rf-level">
-          <label class="rf-label">De <input type="date" id="dash-filter-from"></label>
-          <label class="rf-label">Até <input type="date" id="dash-filter-to"></label>
-        </div>
-        <div class="dash-filter-actions">
-          <button class="btn tiny" type="button" id="dash-filter-apply">Aplicar</button>
-          <button class="btn tiny secondary" type="button" id="dash-filter-clear">Limpar filtro</button>
-        </div>`;
-      document.getElementById('dash-filter-apply').addEventListener('click', () => {
-        dashFilter.from = document.getElementById('dash-filter-from').value || null;
-        dashFilter.to = document.getElementById('dash-filter-to').value || null;
-        renderDashGrid();
-      });
-      bindClear();
-    } else {
-      body.innerHTML = `
-        <div class="rf-level">
-          <label class="rf-label">Mín <input type="text" id="dash-filter-min" style="width:100px"></label>
-          <label class="rf-label">Máx <input type="text" id="dash-filter-max" style="width:100px"></label>
-        </div>
-        <div class="dash-filter-actions">
-          <button class="btn tiny" type="button" id="dash-filter-apply">Aplicar</button>
-          <button class="btn tiny secondary" type="button" id="dash-filter-clear">Limpar filtro</button>
-        </div>`;
-      document.getElementById('dash-filter-apply').addEventListener('click', () => {
-        dashFilter.from = tryParseNumber(document.getElementById('dash-filter-min').value);
-        dashFilter.to = tryParseNumber(document.getElementById('dash-filter-max').value);
-        renderDashGrid();
-      });
-      bindClear();
-    }
-  }
+    dashWidgetSeq++;
+    dashWidgets.push({ kind: 'slicer', id: dashWidgetSeq, column: col, colKind: dashDataset.types[col], values: null, from: null, to: null, size: 'sm' });
+    renderDashGrid();
+  });
 
-  function applyDashFilter(rows) {
-    if (!dashFilter.column) return rows;
-    const col = dashFilter.column;
-    const type = dashFilter.kind;
+  function applySlicer(rows, s) {
+    const col = s.column, type = s.colKind;
     if (type === 'string') {
-      if (!dashFilter.values) return rows;
-      return rows.filter(r => dashFilter.values.has((r[col]||'').trim()));
+      if (!s.values) return rows;
+      return rows.filter(r => s.values.has((r[col]||'').trim()));
     }
     if (type === 'date') {
-      const from = dashFilter.from ? tryParseDate(dashFilter.from) : null;
-      const to = dashFilter.to ? tryParseDate(dashFilter.to) : null;
+      const from = s.from ? tryParseDate(s.from) : null;
+      const to = s.to ? tryParseDate(s.to) : null;
       return rows.filter(r => {
         const d = tryParseDate(r[col]);
         if (!d) return false;
@@ -2418,34 +2358,105 @@
       });
     }
     if (type === 'number') {
-      const min = dashFilter.from, max = dashFilter.to;
       return rows.filter(r => {
         const v = tryParseNumber(r[col]);
         if (v == null) return false;
-        if (min != null && v < min) return false;
-        if (max != null && v > max) return false;
+        if (s.from != null && v < s.from) return false;
+        if (s.to != null && v > s.to) return false;
         return true;
       });
     }
     return rows;
   }
 
+  function slicerSummaryText(s) {
+    if (s.colKind === 'string') {
+      if (!s.values || s.values.size === 0) return 'Todos os valores selecionados.';
+      return 'Selecionado: ' + [...s.values].join(', ');
+    }
+    if (s.colKind === 'date') {
+      if (!s.from && !s.to) return 'Todo o período.';
+      return `De ${s.from || '—'} até ${s.to || '—'}.`;
+    }
+    if (s.from == null && s.to == null) return 'Todos os valores.';
+    return `De ${s.from != null ? s.from : '—'} até ${s.to != null ? s.to : '—'}.`;
+  }
+
+  function renderSlicerBody(container, s) {
+    container.innerHTML = '';
+    const controls = document.createElement('div');
+    controls.className = 'dash-slicer-controls';
+    if (s.colKind === 'string') {
+      const distinct = [...new Set(dashDataset.rows.map(r => (r[s.column]||'').trim()).filter(Boolean))].sort();
+      const wrap = document.createElement('div');
+      wrap.className = 'y-checks';
+      distinct.forEach(v => {
+        const checked = !s.values || s.values.has(v);
+        const lab = document.createElement('label');
+        lab.className = 'y-check' + (checked ? ' checked' : '');
+        lab.innerHTML = `<input type="checkbox" value="${escAttr(v)}" ${checked ? 'checked' : ''}> ${escXml(v)}`;
+        const cb = lab.querySelector('input');
+        cb.addEventListener('change', () => {
+          lab.classList.toggle('checked', cb.checked);
+          const allChecked = Array.from(wrap.querySelectorAll('input')).every(i => i.checked);
+          const checkedVals = Array.from(wrap.querySelectorAll('input:checked')).map(i => i.value);
+          s.values = allChecked ? null : new Set(checkedVals);
+          renderDashGrid();
+        });
+        wrap.appendChild(lab);
+      });
+      controls.appendChild(wrap);
+    } else if (s.colKind === 'date') {
+      controls.innerHTML = `
+        <div class="rf-level">
+          <label class="rf-label">De <input type="date" class="dash-slicer-from" value="${escAttr(s.from||'')}"></label>
+          <label class="rf-label">Até <input type="date" class="dash-slicer-to" value="${escAttr(s.to||'')}"></label>
+        </div>
+        <div class="dash-filter-actions"><button class="btn tiny" type="button">Aplicar</button></div>`;
+      controls.querySelector('button').addEventListener('click', () => {
+        s.from = controls.querySelector('.dash-slicer-from').value || null;
+        s.to = controls.querySelector('.dash-slicer-to').value || null;
+        renderDashGrid();
+      });
+    } else {
+      controls.innerHTML = `
+        <div class="rf-level">
+          <label class="rf-label">Mín <input type="text" class="dash-slicer-from" style="width:90px" value="${s.from != null ? escAttr(String(s.from)) : ''}"></label>
+          <label class="rf-label">Máx <input type="text" class="dash-slicer-to" style="width:90px" value="${s.to != null ? escAttr(String(s.to)) : ''}"></label>
+        </div>
+        <div class="dash-filter-actions"><button class="btn tiny" type="button">Aplicar</button></div>`;
+      controls.querySelector('button').addEventListener('click', () => {
+        s.from = tryParseNumber(controls.querySelector('.dash-slicer-from').value);
+        s.to = tryParseNumber(controls.querySelector('.dash-slicer-to').value);
+        renderDashGrid();
+      });
+    }
+    container.appendChild(controls);
+    const summary = document.createElement('div');
+    summary.className = 'dash-slicer-summary';
+    summary.textContent = slicerSummaryText(s);
+    container.appendChild(summary);
+  }
+
   function renderDashGrid() {
     const grid = document.getElementById('dash-grid');
     grid.innerHTML = '';
     if (!dashWidgets.length) {
-      grid.innerHTML = '<p class="result-empty">Adicione visualizações acima pra montar seu dashboard.</p>';
+      grid.innerHTML = '<p class="result-empty">Adicione visualizações ou filtros acima pra montar seu dashboard.</p>';
       return;
     }
     const ds = currentDashDataset();
     dashWidgets.forEach((w, idx) => {
-      const rec = cardForPairOn(ds, w.xCol, w.yCol);
-      const opt = rec.options.find(o => o.tag === w.tag) || rec.options[0];
+      let rec = null, opt = null;
+      if (w.kind === 'chart') {
+        rec = cardForPairOn(ds, w.xCol, w.yCol);
+        opt = rec.options.find(o => o.tag === w.tag) || rec.options[0];
+      }
       const card = document.createElement('div');
-      card.className = 'dash-widget size-' + w.size;
+      card.className = 'dash-widget size-' + w.size + (w.kind === 'slicer' ? ' dash-slicer' : '');
       const head = document.createElement('div');
       head.className = 'dash-widget-head';
-      head.innerHTML = `<h4>${escXml(rec.title)}</h4>`;
+      head.innerHTML = `<h4>${w.kind === 'slicer' ? 'Filtro: ' + escXml(w.column) : escXml(rec.title)}</h4>`;
       const controls = document.createElement('div');
       controls.className = 'dash-widget-controls';
       const sizeSel = document.createElement('select');
@@ -2466,10 +2477,16 @@
       controls.appendChild(sizeSel); controls.appendChild(upBtn); controls.appendChild(downBtn); controls.appendChild(removeBtn);
       head.appendChild(controls);
       card.appendChild(head);
-      const box = document.createElement('div');
-      box.className = 'chart-box';
-      card.appendChild(box);
-      opt.render(box);
+      if (w.kind === 'slicer') {
+        const body = document.createElement('div');
+        card.appendChild(body);
+        renderSlicerBody(body, w);
+      } else {
+        const box = document.createElement('div');
+        box.className = 'chart-box';
+        card.appendChild(box);
+        opt.render(box);
+      }
       grid.appendChild(card);
     });
   }
