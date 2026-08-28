@@ -2299,10 +2299,17 @@
     const xCol = document.getElementById('dash-sel-x').value;
     const yCol = document.getElementById('dash-sel-y').value;
     if (!xCol || !yCol) return;
-    const rec = cardForPairOn(currentDashDataset(), xCol, yCol);
-    dashPreview = { rec, xCol, yCol, optionIndex: 0 };
-    renderDashPreview();
+    dashPreview = { rec: null, xCol, yCol, optionIndex: 0 };
+    refreshDashPreview();
   });
+
+  function refreshDashPreview() {
+    if (!dashPreview) return;
+    const rec = cardForPairOn(currentDashDataset(), dashPreview.xCol, dashPreview.yCol);
+    dashPreview.rec = rec;
+    if (dashPreview.optionIndex >= rec.options.length) dashPreview.optionIndex = 0;
+    renderDashPreview();
+  }
 
   function renderDashPreview() {
     const picker = document.getElementById('dash-chart-picker');
@@ -2460,6 +2467,7 @@
     grid.innerHTML = '';
     if (!dashWidgets.length) {
       grid.innerHTML = '<p class="result-empty">Adicione visualizações ou filtros acima pra montar seu dashboard.</p>';
+      refreshDashPreview();
       return;
     }
     const ds = currentDashDataset();
@@ -2506,6 +2514,7 @@
       }
       grid.appendChild(card);
     });
+    refreshDashPreview();
   }
 
   document.getElementById('dash-btn-export').addEventListener('click', () => {
