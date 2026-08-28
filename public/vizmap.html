@@ -2595,11 +2595,22 @@
     document.getElementById('dash-print-date').textContent = 'Gerado em ' + now.toLocaleDateString('pt-BR') + ' às ' + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     window.print();
   });
+  function summarizeDashWidgets(widgets) {
+    widgets = widgets || [];
+    const chartCount = widgets.filter(w => w.kind === 'chart').length;
+    const slicerCount = widgets.filter(w => w.kind === 'slicer').length;
+    if (!chartCount && !slicerCount) return 'Vazio ainda';
+    const parts = [];
+    if (chartCount) parts.push(chartCount + (chartCount === 1 ? ' gráfico' : ' gráficos'));
+    if (slicerCount) parts.push(slicerCount + (slicerCount === 1 ? ' filtro' : ' filtros'));
+    return parts.join(' · ');
+  }
+
   async function loadDashboardList() {
     const listEl = document.getElementById('dash-hub-list');
     if (!window.easyvizSupabase) return;
     listEl.innerHTML = '<p class="result-empty">Carregando seus dashboards…</p>';
-    const { data, error } = await window.easyvizSupabase.from('dashboards').select('id,name,updated_at').order('updated_at', { ascending: false });
+    const { data, error } = await window.easyvizSupabase.from('dashboards').select('id,name,updated_at,widgets').order('updated_at', { ascending: false });
     if (error) {
       listEl.innerHTML = `<p class="result-empty">Não foi possível carregar seus dashboards agora (${escXml(error.message)}).</p>`;
       return;
@@ -2615,7 +2626,7 @@
       row.className = 'dash-saved-row';
       const updated = new Date(d.updated_at).toLocaleDateString('pt-BR');
       row.innerHTML = `
-        <div><b>${escXml(d.name)}</b><span class="dash-saved-date">Atualizado em ${updated}</span></div>
+        <div><b>${escXml(d.name)}</b><span class="dash-saved-date">${escXml(summarizeDashWidgets(d.widgets))} · Atualizado em ${updated}</span></div>
         <div class="dash-saved-actions">
           <button class="btn secondary tiny" type="button" data-open="${escAttr(d.id)}">Abrir</button>
           <button class="btn secondary tiny" type="button" data-delete="${escAttr(d.id)}">Excluir</button>
