@@ -539,7 +539,16 @@
       <div id="dash-hub">
         <div class="card">
           <div class="section-label">Conta</div>
-          <p class="note" style="margin:0" id="dash-hub-greeting">Olá!</p>
+          <p class="note" style="margin:0 0 .9rem" id="dash-hub-greeting">Olá!</p>
+          <div class="field" style="max-width:320px">
+            <label for="dash-username-input">Nome de usuário</label>
+            <input type="text" id="dash-username-input" maxlength="40">
+          </div>
+          <div style="display:flex; gap:.6rem; flex-wrap:wrap">
+            <button class="btn secondary tiny" id="dash-btn-save-username" type="button">Salvar nome</button>
+            <button class="btn secondary tiny" id="dash-btn-logout" type="button">Sair</button>
+          </div>
+          <p class="auth-error" id="dash-username-msg" style="display:none; margin-top:.6rem"></p>
         </div>
         <div class="card">
           <div class="page-header">
@@ -2204,8 +2213,31 @@
     const user = dashAuthState.session.user;
     const name = user && (user.user_metadata && user.user_metadata.username || user.email);
     document.getElementById('dash-hub-greeting').textContent = name ? `Olá, ${name}!` : 'Olá!';
+    document.getElementById('dash-username-input').value = (user && user.user_metadata && user.user_metadata.username) || '';
     loadDashboardList();
   }
+
+  document.getElementById('dash-btn-save-username').addEventListener('click', async () => {
+    const val = document.getElementById('dash-username-input').value.trim();
+    const msgEl = document.getElementById('dash-username-msg');
+    if (!window.easyvizSupabase) return;
+    const btn = document.getElementById('dash-btn-save-username');
+    btn.disabled = true;
+    const { error } = await window.easyvizSupabase.auth.updateUser({ data: { username: val } });
+    btn.disabled = false;
+    msgEl.style.display = 'block';
+    if (error) {
+      msgEl.style.color = '#c0392b';
+      msgEl.textContent = 'Não foi possível salvar: ' + error.message;
+    } else {
+      msgEl.style.color = 'var(--good)';
+      msgEl.textContent = 'Nome atualizado!';
+    }
+  });
+
+  document.getElementById('dash-btn-logout').addEventListener('click', () => {
+    if (window.easyvizSupabase) window.easyvizSupabase.auth.signOut();
+  });
 
   function showDashHub() {
     document.getElementById('dash-hub').style.display = 'block';
