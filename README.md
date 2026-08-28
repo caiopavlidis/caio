@@ -1,6 +1,6 @@
 # EasyViz
 
-Escolha a visualização certa, entenda o porquê, e monte a história por trás dos seus dados — baseado nos princípios do livro *Storytelling com Dados*.
+Escolha a visualização certa, entenda o porquê, e monte a história por trás dos seus dados — com base em boas práticas amplamente aceitas de visualização de dados.
 
 A ferramenta em si (`public/vizmap.html`) continua funcionando 100% no navegador — descrever KPIs, enviar CSV/XLSX, gerar gráficos e insights não depende de login nem de servidor. O login é opcional, só pra quem quiser (no futuro) salvar ou compartilhar análises.
 

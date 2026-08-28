@@ -272,8 +272,6 @@
   }
 
   footer.page-footer { margin-top:3.5rem; font-size:.82rem; color:var(--grey); text-align:center; }
-  a.back-link { color:var(--accent); text-decoration:none; font-weight:600; }
-  a.back-link:hover { text-decoration:underline; }
 
   /* Dashboard builder (page 3) */
   .dash-grid { display:grid; grid-template-columns: repeat(6, 1fr); gap:1.1rem; align-items:start; }
@@ -351,7 +349,7 @@
 <div class="page">
 
   <section class="page-view active" id="page-1">
-    <div class="eyebrow">Baseada em Storytelling com Dados</div>
+    <div class="eyebrow">Visualização de dados com clareza</div>
     <h1 class="title">EasyViz</h1>
     <p class="subtitle">Escolha a visualização certa, entenda o porquê, e monte a história por trás dos seus dados.</p>
 
@@ -362,7 +360,7 @@
       </div>
       <div class="intro-card">
         <h3>Em que ela se baseia</h3>
-        <p>As recomendações seguem principalmente os princípios do livro <em>Storytelling com Dados</em>, de Cole Nussbaumer Knaflic — contexto, escolha do gráfico certo, eliminar excesso, direcionar atenção e contar uma história. Quando ajuda, complementamos com práticas amplamente aceitas de visualização de dados (como limitar itens por tela ou usar cor com moderação), sempre citando o porquê.</p>
+        <p>As recomendações seguem boas práticas amplamente aceitas na área de visualização de dados — entender o contexto e o público, escolher a exibição certa pro que você quer mostrar, eliminar excesso visual, direcionar a atenção pro que importa e estruturar uma narrativa clara. Sempre que ajuda, complementamos com outras práticas conhecidas de comunicação com dados (como limitar itens por tela ou usar cor com moderação), sempre citando o porquê.</p>
       </div>
       <div class="intro-card security">
         <h3>🔒 Segurança e privacidade (LGPD)</h3>
@@ -593,7 +591,7 @@
   <!-- /page-3 -->
 
   <footer class="page-footer">
-    Companheira do guia <a class="back-link" href="#" id="link-guia">Storytelling com Dados</a> — mesma síntese aplicada, agora interativa.
+    EasyViz — escolha a visualização certa e conte a história dos seus dados.
   </footer>
 </div>
 
@@ -1012,10 +1010,10 @@
   }
 
   const LESSON = {
-    contexto: 'Lição 1 do livro — Entenda o contexto',
-    escolha: 'Lição 2 do livro — Escolha a exibição certa',
-    desordem: 'Lição 3 do livro — Elimine a desordem',
-    atencao: 'Lição 4 do livro — Direcione a atenção',
+    contexto: 'Entenda o contexto',
+    escolha: 'Escolha a exibição certa',
+    desordem: 'Elimine a desordem',
+    atencao: 'Direcione a atenção',
   };
 
   /* ---------------- insight questions + storytelling order ---------------- */
@@ -1094,7 +1092,7 @@
     const card = document.createElement('div');
     card.className = 'story-card';
     card.innerHTML = `
-      <div class="section-label">Roteiro sugerido — Lição 6 do livro (conte uma história)</div>
+      <div class="section-label">Roteiro sugerido — como contar a história</div>
       <h3>Uma ordem pra apresentar isso</h3>
       <div class="big-idea">${escXml(bigIdea)}</div>
       <ol class="story-steps">${orderedItems.map(it => `<li><div><b>${escXml(it.title)}</b><br><span>${escXml(storyRationale(it.family))}</span></div></li>`).join('')}</ol>
@@ -1301,7 +1299,7 @@
       opt.render(box);
       let inner = `<div class="mini-label">Por que este gráfico</div><ul class="why-list">${opt.why.map(w=>`<li>${escXml(w)}</li>`).join('')}</ul>`;
       if (opt.avoid && opt.avoid.length) inner += `<div class="mini-label">Evite</div><ul class="avoid-list">${opt.avoid.map(w=>`<li>${escXml(w)}</li>`).join('')}</ul>`;
-      if (opt.lesson) inner += `<div class="lesson-tag">Baseado na ${escXml(opt.lesson)}.</div>`;
+      if (opt.lesson) inner += `<div class="lesson-tag">Princípio aplicado: ${escXml(opt.lesson)}.</div>`;
       why.innerHTML = inner;
     }
     if (card.insights && card.insights.length) {
@@ -2068,11 +2066,6 @@
     loadDataset(header, rows);
   });
 
-  document.getElementById('link-guia').addEventListener('click', (e) => {
-    e.preventDefault();
-    alert('Abra o artifact "Storytelling com Dados" publicado nesta mesma conversa para ver o guia completo com as seis lições.');
-  });
-
   /* ---------------- TAB C: storytelling a partir de um gráfico pronto ---------------- */
 
   let imageObjectUrl = null;
@@ -2125,7 +2118,7 @@
     const story = document.createElement('div');
     story.className = 'story-card';
     story.innerHTML = `
-      <div class="section-label">Roteiro sugerido — Lição 6 do livro (conte uma história)</div>
+      <div class="section-label">Roteiro sugerido — como contar a história</div>
       <h3>Como apresentar este gráfico</h3>
       <ol class="story-steps">
         <li><div><b>Contexto</b><br><span>${escXml(intro)}</span></div></li>
