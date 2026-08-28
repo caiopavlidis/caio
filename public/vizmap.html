@@ -291,15 +291,28 @@
   .dash-widget.dash-slicer { background:var(--accent-soft); border:1px solid var(--accent-soft-line); box-shadow:none; }
   .dash-slicer-summary { display:none; font-size:.85rem; color:var(--ink-soft); }
 
+  #dash-print-header { display:none; }
+
   @media print {
+    @page { size: landscape; margin: 12mm; }
     .site-header, .page-footer, .eyebrow, .page-title, .subtitle,
     #dash-locked, #dash-unavailable, #dash-app > .card:not(#dash-grid-card) { display:none !important; }
+    #dash-print-header { display:block; margin-bottom:.9rem; }
+    #dash-print-header h2 { font-family:var(--font-display); font-weight:600; font-size:1.4rem; margin:0 0 .15rem; }
+    #dash-print-header span { font-family:var(--font-mono); font-size:.72rem; color:var(--grey); }
     #dash-grid-card { box-shadow:none !important; padding:0 !important; }
-    #dash-grid-card .page-header .btn { display:none !important; }
-    .dash-widget { break-inside: avoid; box-shadow:none !important; border:1px solid var(--grey-line); }
+    #dash-grid-card .page-header { display:none !important; }
+    .dash-grid { gap:.55rem !important; align-items:stretch !important; }
+    .dash-widget { break-inside: avoid; box-shadow:none !important; border:1px solid var(--grey-line); border-radius:8px !important; padding:.6rem .7rem .7rem !important; }
+    .dash-widget-head { margin-bottom:.3rem !important; }
+    .dash-widget-head h4 { font-family:var(--font-body) !important; font-size:.8rem !important; font-weight:700 !important; }
     .dash-widget-controls { display:none !important; }
+    .chart-box { background:none !important; padding:0 !important; }
     .dash-slicer-controls { display:none !important; }
     .dash-slicer-summary { display:block !important; }
+    .dash-widget.dash-slicer { padding:.45rem .7rem !important; }
+    .dash-widget.dash-slicer .dash-widget-head h4 { font-size:.74rem !important; }
+    .dash-slicer-summary { font-size:.74rem !important; margin-top:.1rem; }
     body { background:#fff; }
   }
 </style>
@@ -568,6 +581,10 @@
             <button class="btn secondary tiny" id="dash-btn-save" type="button" title="Salvar no servidor ainda não está disponível">Salvar (em breve)</button>
             <button class="btn tiny" id="dash-btn-export" type="button">Exportar como PDF</button>
           </div>
+        </div>
+        <div id="dash-print-header">
+          <h2>Meu Dashboard — EasyViz</h2>
+          <span id="dash-print-date"></span>
         </div>
         <div class="dash-grid" id="dash-grid"></div>
       </div>
@@ -2491,7 +2508,11 @@
     });
   }
 
-  document.getElementById('dash-btn-export').addEventListener('click', () => { window.print(); });
+  document.getElementById('dash-btn-export').addEventListener('click', () => {
+    const now = new Date();
+    document.getElementById('dash-print-date').textContent = 'Gerado em ' + now.toLocaleDateString('pt-BR') + ' às ' + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    window.print();
+  });
   document.getElementById('dash-btn-save').addEventListener('click', () => {
     alert('Salvar dashboards no servidor ainda não está disponível — em breve!');
   });
