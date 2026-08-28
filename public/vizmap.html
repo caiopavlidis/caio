@@ -322,7 +322,7 @@
       <nav class="site-nav" aria-label="Páginas do site">
         <button class="site-nav-link active" id="pager-1" type="button">Sobre a plataforma</button>
         <button class="site-nav-link" id="pager-2" type="button">Ferramentas</button>
-        <button class="site-nav-link" id="pager-3" type="button">Meus Dashboards</button>
+        <button class="site-nav-link" id="pager-3" type="button">Minha Área</button>
       </nav>
       <div class="auth-status" id="auth-status"></div>
     </div>
@@ -515,8 +515,8 @@
 
   <section class="page-view" id="page-3">
     <div class="eyebrow">EasyViz</div>
-    <h2 class="page-title">Meus Dashboards</h2>
-    <p class="subtitle" style="margin-bottom:1.8rem">Envie seus dados, escolha os gráficos, monte o layout do seu jeito e exporte como PDF.</p>
+    <h2 class="page-title">Minha Área</h2>
+    <p class="subtitle" style="margin-bottom:1.8rem">Seus dashboards e sua conta, num só lugar.</p>
 
     <div id="dash-locked" class="card" style="display:none">
       <div class="section-label">Login necessário</div>
@@ -530,6 +530,25 @@
     </div>
 
     <div id="dash-app" style="display:none">
+
+      <div id="dash-hub">
+        <div class="card">
+          <div class="section-label">Conta</div>
+          <p class="note" style="margin:0" id="dash-hub-greeting">Olá!</p>
+        </div>
+        <div class="card">
+          <div class="page-header">
+            <h3>Meus Dashboards</h3>
+            <button class="btn tiny" id="dash-btn-new" type="button">+ Criar novo dashboard</button>
+          </div>
+          <div id="dash-hub-list">
+            <p class="result-empty">Você ainda não tem dashboards salvos por aqui — salvar no servidor chega numa próxima etapa. Por enquanto, cada dashboard vive só na sua sessão atual; exporte como PDF pra guardar o resultado.</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="dash-builder-wrap" style="display:none">
+      <button class="back-btn" id="dash-btn-back" type="button">← Voltar pra Minha Área</button>
       <div class="card">
         <div class="section-label">1. Enviar dados</div>
         <label class="dropzone" id="dash-dropzone" for="dash-file-input">
@@ -586,6 +605,8 @@
         </div>
         <div class="dash-grid" id="dash-grid"></div>
       </div>
+      </div>
+      <!-- /dash-builder-wrap -->
     </div>
   </section>
   <!-- /page-3 -->
@@ -2173,7 +2194,21 @@
     if (dashAuthState.unavailable) { dashUnavailable.style.display = 'block'; return; }
     if (!dashAuthState.session) { dashLocked.style.display = 'block'; return; }
     dashApp.style.display = 'block';
+    const user = dashAuthState.session.user;
+    const name = user && (user.user_metadata && user.user_metadata.username || user.email);
+    document.getElementById('dash-hub-greeting').textContent = name ? `Olá, ${name}!` : 'Olá!';
   }
+
+  function showDashHub() {
+    document.getElementById('dash-hub').style.display = 'block';
+    document.getElementById('dash-builder-wrap').style.display = 'none';
+  }
+  function showDashBuilder() {
+    document.getElementById('dash-hub').style.display = 'none';
+    document.getElementById('dash-builder-wrap').style.display = 'block';
+  }
+  document.getElementById('dash-btn-new').addEventListener('click', showDashBuilder);
+  document.getElementById('dash-btn-back').addEventListener('click', showDashHub);
 
   function currentDashRows() {
     let rows = dashDataset.rows;
