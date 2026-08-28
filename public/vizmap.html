@@ -286,6 +286,11 @@
   .dash-widget-controls { display:flex; gap:.35rem; flex-shrink:0; align-items:center; }
   .dash-widget-controls select { width:auto; font-size:.72rem; padding:.25rem .4rem; }
   .dash-filter-actions { display:flex; gap:.6rem; margin-top:.8rem; }
+  .dash-saved-list { display:grid; gap:.6rem; }
+  .dash-saved-row { display:flex; justify-content:space-between; align-items:center; gap:1rem; padding:.7rem .9rem; background:var(--surface-sunken); border-radius:10px; flex-wrap:wrap; }
+  .dash-saved-row b { font-size:.92rem; }
+  .dash-saved-date { display:block; font-size:.76rem; color:var(--grey); margin-top:.1rem; }
+  .dash-saved-actions { display:flex; gap:.5rem; flex-shrink:0; }
   .dash-widget.dash-slicer { background:var(--accent-soft); border:1px solid var(--accent-soft-line); box-shadow:none; }
   .dash-slicer-summary { display:none; font-size:.85rem; color:var(--ink-soft); }
 
@@ -365,9 +370,9 @@
       <div class="intro-card security">
         <h3>🔒 Segurança e privacidade (LGPD)</h3>
         <ul class="intro-list">
-          <li><span class="chk">✓</span><div><b>Tudo roda no seu navegador.</b><p>Nenhum dado digitado, enviado ou anexado (CSV, imagens, texto) é transmitido a um servidor — o processamento é só local.</p></div></li>
-          <li><span class="chk">✓</span><div><b>Nada é armazenado.</b><p>Sem localStorage, cookies ou banco de dados. Ao fechar ou recarregar a página, tudo desaparece.</p></div></li>
-          <li><span class="chk">✓</span><div><b>Você continua responsável pelos dados.</b><p>Como a ferramenta não coleta, guarda nem compartilha informações, ela não atua como operadora nos termos da LGPD — mas se o arquivo tiver dados pessoais ou sensíveis (Art. 5º da LGPD), a responsabilidade pelo tratamento continua sendo sua. Evite incluir dados pessoais identificáveis quando não forem necessários pra visualização.</p></div></li>
+          <li><span class="chk">✓</span><div><b>As ferramentas de análise rodam no seu navegador.</b><p>Na aba "Ferramentas" (descrever KPIs, enviar CSV/XLSX, subir um gráfico pronto), nada do que você digita ou anexa é transmitido a um servidor — o processamento é só local, sem precisar de login, e nada fica salvo.</p></div></li>
+          <li><span class="chk">✓</span><div><b>Login e "Minha Área" guardam só o que você escolher salvar.</b><p>Se você criar uma conta e salvar um dashboard em "Minha Área", os dados enviados e a configuração daquele dashboard ficam guardados no nosso banco de dados, protegidos e vinculados só à sua conta — nenhum outro usuário tem acesso. Sem login, nada é armazenado.</p></div></li>
+          <li><span class="chk">✓</span><div><b>Você continua responsável pelo conteúdo dos dados.</b><p>Se um arquivo que você envia ou salva tiver dados pessoais ou sensíveis (Art. 5º da LGPD), a decisão de incluí-los é sua — evite dados pessoais identificáveis quando não forem necessários pra visualização. Ao usar "Minha Área", passamos a guardar o que você salva em nome da sua conta.</p></div></li>
         </ul>
         <p class="intro-fine">Única conexão externa: fontes do Google Fonts, carregadas só para exibir o texto da página — não relacionada aos seus dados.</p>
       </div>
@@ -542,7 +547,7 @@
             <button class="btn tiny" id="dash-btn-new" type="button">+ Criar novo dashboard</button>
           </div>
           <div id="dash-hub-list">
-            <p class="result-empty">Você ainda não tem dashboards salvos por aqui — salvar no servidor chega numa próxima etapa. Por enquanto, cada dashboard vive só na sua sessão atual; exporte como PDF pra guardar o resultado.</p>
+            <p class="result-empty">Carregando seus dashboards…</p>
           </div>
         </div>
       </div>
@@ -595,7 +600,7 @@
         <div class="page-header">
           <h3>Seu dashboard</h3>
           <div style="display:flex; gap:.6rem; flex-wrap:wrap">
-            <button class="btn secondary tiny" id="dash-btn-save" type="button" title="Salvar no servidor ainda não está disponível">Salvar (em breve)</button>
+            <button class="btn secondary tiny" id="dash-btn-save" type="button">Salvar dashboard</button>
             <button class="btn tiny" id="dash-btn-export" type="button">Exportar como PDF</button>
           </div>
         </div>
@@ -2174,6 +2179,8 @@
   let dashWidgetSeq = 0;
   let dashPreview = null;
   let dashAuthState = { session: null, unavailable: false, ready: false };
+  let currentDashboardId = null;
+  let currentDashboardName = null;
 
   const dashLocked = document.getElementById('dash-locked');
   const dashUnavailable = document.getElementById('dash-unavailable');
@@ -2197,17 +2204,19 @@
     const user = dashAuthState.session.user;
     const name = user && (user.user_metadata && user.user_metadata.username || user.email);
     document.getElementById('dash-hub-greeting').textContent = name ? `Olá, ${name}!` : 'Olá!';
+    loadDashboardList();
   }
 
   function showDashHub() {
     document.getElementById('dash-hub').style.display = 'block';
     document.getElementById('dash-builder-wrap').style.display = 'none';
+    loadDashboardList();
   }
   function showDashBuilder() {
     document.getElementById('dash-hub').style.display = 'none';
     document.getElementById('dash-builder-wrap').style.display = 'block';
   }
-  document.getElementById('dash-btn-new').addEventListener('click', showDashBuilder);
+  document.getElementById('dash-btn-new').addEventListener('click', () => { resetDashboardState(); showDashBuilder(); });
   document.getElementById('dash-btn-back').addEventListener('click', showDashHub);
 
   function currentDashRows() {
@@ -2288,17 +2297,21 @@
     loadDashDataset(header, rows);
   });
 
-  document.getElementById('dash-btn-clear').addEventListener('click', () => {
+  function resetDashboardState() {
     dashDataset = { header: [], rows: [], types: {} };
     dashWidgets = [];
     dashPreview = null;
+    currentDashboardId = null;
+    currentDashboardName = null;
     document.getElementById('dash-builder-card').style.display = 'none';
     document.getElementById('dash-filter-card').style.display = 'none';
     document.getElementById('dash-grid-card').style.display = 'none';
     document.getElementById('dash-btn-clear').style.display = 'none';
     dashFileInput.value = '';
     dashFileNameEl.textContent = '';
-  });
+  }
+
+  document.getElementById('dash-btn-clear').addEventListener('click', resetDashboardState);
 
   function dashBestXColumn() {
     const dateCols = dashDataset.header.filter(c => dashDataset.types[c] === 'date');
@@ -2550,8 +2563,92 @@
     document.getElementById('dash-print-date').textContent = 'Gerado em ' + now.toLocaleDateString('pt-BR') + ' às ' + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     window.print();
   });
-  document.getElementById('dash-btn-save').addEventListener('click', () => {
-    alert('Salvar dashboards no servidor ainda não está disponível — em breve!');
+  async function loadDashboardList() {
+    const listEl = document.getElementById('dash-hub-list');
+    if (!window.easyvizSupabase) return;
+    listEl.innerHTML = '<p class="result-empty">Carregando seus dashboards…</p>';
+    const { data, error } = await window.easyvizSupabase.from('dashboards').select('id,name,updated_at').order('updated_at', { ascending: false });
+    if (error) {
+      listEl.innerHTML = `<p class="result-empty">Não foi possível carregar seus dashboards agora (${escXml(error.message)}).</p>`;
+      return;
+    }
+    if (!data.length) {
+      listEl.innerHTML = '<p class="result-empty">Você ainda não tem dashboards salvos. Crie um agora com o botão acima.</p>';
+      return;
+    }
+    const list = document.createElement('div');
+    list.className = 'dash-saved-list';
+    data.forEach(d => {
+      const row = document.createElement('div');
+      row.className = 'dash-saved-row';
+      const updated = new Date(d.updated_at).toLocaleDateString('pt-BR');
+      row.innerHTML = `
+        <div><b>${escXml(d.name)}</b><span class="dash-saved-date">Atualizado em ${updated}</span></div>
+        <div class="dash-saved-actions">
+          <button class="btn secondary tiny" type="button" data-open="${escAttr(d.id)}">Abrir</button>
+          <button class="btn secondary tiny" type="button" data-delete="${escAttr(d.id)}">Excluir</button>
+        </div>`;
+      list.appendChild(row);
+    });
+    listEl.innerHTML = '';
+    listEl.appendChild(list);
+    list.querySelectorAll('[data-open]').forEach(btn => btn.addEventListener('click', () => openSavedDashboard(btn.getAttribute('data-open'))));
+    list.querySelectorAll('[data-delete]').forEach(btn => btn.addEventListener('click', () => deleteSavedDashboard(btn.getAttribute('data-delete'))));
+  }
+
+  async function openSavedDashboard(id) {
+    const { data, error } = await window.easyvizSupabase.from('dashboards').select('*').eq('id', id).single();
+    if (error || !data) { alert('Não foi possível abrir esse dashboard: ' + (error ? error.message : 'não encontrado')); return; }
+    dashDataset = data.dataset;
+    dashWidgets = data.widgets || [];
+    currentDashboardId = data.id;
+    currentDashboardName = data.name;
+    dashPreview = null;
+    document.getElementById('dash-builder-card').style.display = 'block';
+    document.getElementById('dash-filter-card').style.display = 'block';
+    document.getElementById('dash-grid-card').style.display = 'block';
+    document.getElementById('dash-btn-clear').style.display = 'inline-flex';
+    document.getElementById('dash-chart-picker').style.display = 'none';
+    dashFileNameEl.textContent = data.name + ' (salvo)';
+    populateDashXY();
+    populateDashFilterCol();
+    renderDashGrid();
+    showDashBuilder();
+  }
+
+  async function deleteSavedDashboard(id) {
+    if (!confirm('Excluir esse dashboard? Essa ação não pode ser desfeita.')) return;
+    const { error } = await window.easyvizSupabase.from('dashboards').delete().eq('id', id);
+    if (error) { alert('Não foi possível excluir: ' + error.message); return; }
+    if (currentDashboardId === id) currentDashboardId = null;
+    loadDashboardList();
+  }
+
+  document.getElementById('dash-btn-export').addEventListener('click', () => {
+    const now = new Date();
+    document.getElementById('dash-print-date').textContent = 'Gerado em ' + now.toLocaleDateString('pt-BR') + ' às ' + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    window.print();
+  });
+
+  document.getElementById('dash-btn-save').addEventListener('click', async () => {
+    if (!dashDataset.rows.length) { alert('Envie os dados antes de salvar.'); return; }
+    const defaultName = currentDashboardName || ('Dashboard de ' + new Date().toLocaleDateString('pt-BR'));
+    const name = prompt('Nome do dashboard:', defaultName);
+    if (!name) return;
+    const btn = document.getElementById('dash-btn-save');
+    btn.disabled = true;
+    const { data: sessionData } = await window.easyvizSupabase.auth.getSession();
+    const userId = sessionData.session && sessionData.session.user.id;
+    if (!userId) { alert('Sua sessão expirou — faça login de novo.'); btn.disabled = false; return; }
+    const payload = { user_id: userId, name, dataset: dashDataset, widgets: dashWidgets };
+    const result = currentDashboardId
+      ? await window.easyvizSupabase.from('dashboards').update(payload).eq('id', currentDashboardId).select().single()
+      : await window.easyvizSupabase.from('dashboards').insert(payload).select().single();
+    btn.disabled = false;
+    if (result.error) { alert('Não foi possível salvar: ' + result.error.message); return; }
+    currentDashboardId = result.data.id;
+    currentDashboardName = result.data.name;
+    alert('Dashboard salvo!');
   });
 
 })();
@@ -2683,6 +2780,7 @@
     }
 
     window.easyvizOpenLogin = openModal;
+    window.easyvizSupabase = supabase;
 
     supabase.auth.getSession().then(({ data }) => renderAuthStatus(data.session));
     supabase.auth.onAuthStateChange((_event, session) => renderAuthStatus(session));
